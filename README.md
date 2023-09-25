@@ -4,7 +4,7 @@
 > Schrap hierboven wat niet past
 
 - Student: ABDELLAH EL HALIMI
-- Studentennummer: 2022xxxxx
+- Studentennummer: 202291491
 - E-mailadres: <mailto:abdellah.elhalimi.merroun@student.hogent.be>
 
 ## Vereisten
