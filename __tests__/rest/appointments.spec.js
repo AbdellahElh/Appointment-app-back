@@ -1,6 +1,6 @@
 const supertest = require("supertest");
-const createServer = require("../src/createServer");
-const { getKnex, tables } = require("../src/data");
+const createServer = require("../../src/createServer");
+const { getKnex, tables } = require("../../src/data");
 
 const data = {
   appointments: [
@@ -275,11 +275,11 @@ describe("Appointments", () => {
         patientId: 1,
         doctorId: 1,
       });
-    
+
       expect(response.statusCode).toBe(400);
       expect(response.body.code).toBe("VALIDATION_FAILED");
       expect(response.body.details.body).toHaveProperty("description");
-    });    
+    });
 
     it("should 400 when missing numberOfBeds", async () => {
       const response = await request.post(url).send({
