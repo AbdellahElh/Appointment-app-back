@@ -1,10 +1,11 @@
 module.exports = {
+  port: 9000,
   log: {
     level: "silly",
     disabled: false,
   },
   cors: {
-    origins: ['http://localhost:5173'],
+    origins: ["http://localhost:5173"],
     maxAge: 3 * 60 * 60,
   },
   database: {
@@ -16,9 +17,9 @@ module.exports = {
     password: "",
   },
   migrations: {
-    directory: '../src/data/migrations', 
+    directory: "../src/data/migrations",
   },
   seeds: {
-    directory: './seeds',
+    directory: "./seeds",
   },
 };

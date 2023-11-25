@@ -68,13 +68,14 @@ const validate = (schema) => {
     if (Object.keys(errors).length) {
       ctx.throw(400, "Validation failed, check details for more information", {
         code: "VALIDATION_FAILED",
-        details: { body: errors },
+        details: errors, // Use the cleaned errors directly
       });
     }
 
     await next();
   };
 };
+
 
 const cleanupJoiError = (error) =>
   error.details.reduce((resultObj, { message, path, type }) => {

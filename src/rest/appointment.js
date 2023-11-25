@@ -10,15 +10,12 @@ const getAllAppointments = async (ctx) => {
 getAllAppointments.validationScheme = null;
 
 const createAppointment = async (ctx) => {
-  const patientId = Number(ctx.request.body.patient.id);
-  const doctorId = Number(ctx.request.body.doctor.id);
-
   const newAppointment = await appointmentService.create({
     ...ctx.request.body,
     date: new Date(ctx.request.body.date),
     numberOfBeds: Number(ctx.request.body.numberOfBeds),
-    patientId: patientId,
-    doctorId: doctorId,
+    patientId: Number(ctx.request.body.patientId),
+    doctorId: Number(ctx.request.body.doctorId),
   });
 
   ctx.status = 201;
@@ -31,12 +28,8 @@ createAppointment.validationScheme = {
     numberOfBeds: Joi.number().integer().positive(),
     condition: Joi.string(),
     date: Joi.date().iso(),
-    patient: Joi.object({
-      id: Joi.number().integer().positive(),
-    }),
-    doctor: Joi.object({
-      id: Joi.number().integer().positive(),
-    }),
+    patientId: Joi.number().integer().positive(),
+    doctorId: Joi.number().integer().positive(),
   }),
 };
 
@@ -55,26 +48,22 @@ const updateAppointment = async (ctx) => {
     ...ctx.request.body,
     date: new Date(ctx.request.body.date),
     numberOfBeds: Number(ctx.request.body.numberOfBeds),
-    patientId: Number(ctx.request.body.patient.id),
-    doctorId: Number(ctx.request.body.doctor.id),
+    patientId: Number(ctx.request.body.patientId),
+    doctorId: Number(ctx.request.body.doctorId),
   });
 };
 
 updateAppointment.validationScheme = {
-  params: Joi.object({
+  params: {
     id: Joi.number().integer().positive(),
-  }),
+  },
   body: Joi.object({
     description: Joi.string(),
     numberOfBeds: Joi.number().integer().positive(),
     condition: Joi.string(),
     date: Joi.date().iso(),
-    patient: Joi.object({
-      id: Joi.number().integer().positive(),
-    }),
-    doctor: Joi.object({
-      id: Joi.number().integer().positive(),
-    }),
+    patientId: Joi.number().integer().positive(),
+    doctorId: Joi.number().integer().positive(),
   }),
 };
 

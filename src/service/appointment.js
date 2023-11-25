@@ -53,30 +53,16 @@ const create = async ({
 
 const updateById = async (
   id,
-  { patient, doctor, date, description, numberOfBeds, condition }
+  { patientId, doctorId, date, description, numberOfBeds, condition }
 ) => {
-  try {
-    const patientId = Number(patient.id);
-    const doctorId = Number(doctor.id);
-
-    if (isNaN(patientId)) {
-      throw ServiceError.validationFailed(`Invalid patientId: ${patientId}`);
-    }
-
+  if (patientId) {
     const existingPatient = await patientService.getById(patientId);
 
     if (!existingPatient) {
       throw ServiceError.notFound(`There is no patient with id ${id}.`, { id });
     }
-
-    const existingAppointment = await getById(id);
-
-    if (!existingAppointment) {
-      throw ServiceError.notFound(`No appointment with id ${id} exists`, {
-        id,
-      });
-    }
-
+  }
+  try {
     await appointmentRepo.updateById(id, {
       patientId,
       doctorId,
@@ -85,7 +71,6 @@ const updateById = async (
       numberOfBeds,
       condition,
     });
-
     return getById(id);
   } catch (error) {
     throw handleDBError(error);
