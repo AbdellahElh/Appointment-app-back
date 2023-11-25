@@ -35,7 +35,7 @@ const data = {
   patients: [
     {
       id: 1,
-      name: "Emily Smith", //changed from Test
+      name: "Emily Smith",
       street: "789 Oak Street",
       number: "Apt 3C",
       postalCode: "54321",
@@ -46,7 +46,7 @@ const data = {
   doctors: [
     {
       id: 1,
-      name: "Dr. Olivia Williams Anderson", //changed from Test
+      name: "Dr. Olivia Williams Anderson",
       speciality: "Cardiologist",
       numberOfPatients: 3, //this week
       photo: "../src/assets/imgs/doc1.jpg",
@@ -130,6 +130,13 @@ describe("Appointments", () => {
         condition: "Chest pain and shortness of breath",
       });
     });
+    it("should 400 when given an argument", async () => {
+      const response = await request.get(`${url}?invalid=true`);
+
+      expect(response.statusCode).toBe(400);
+      expect(response.body.code).toBe("VALIDATION_FAILED");
+      expect(response.body.details.query).toHaveProperty("invalid");
+    });
   });
 
   describe("GET /api/appointments/:id", () => {
@@ -160,18 +167,10 @@ describe("Appointments", () => {
         doctor: {
           id: 1,
           name: "Dr. Olivia Williams Anderson",
-          // speciality: "Cardiologist",
-          // numberOfPatients: 3,
-          // photo: "../assets/imgs/doc1.jpg",
         },
         patient: {
           id: 1,
           name: "Emily Smith",
-          // street: "789 Oak Street",
-          // number: "Apt 3C",
-          // postalCode: "54321",
-          // city: "Metropolitan City",
-          // birthdate: new Date(2001, 10, 15).toJSON(),
         },
         date: new Date(2023, 11, 15, 8, 15).toJSON(),
         description: "Annual Health Checkup",
@@ -179,25 +178,46 @@ describe("Appointments", () => {
         condition: "Chest pain and shortness of breath",
       });
     });
+    it("should 404 when requesting not existing appointment", async () => {
+      const response = await request.get(`${url}/2`);
+
+      expect(response.statusCode).toBe(404);
+      expect(response.body).toMatchObject({
+        code: "NOT_FOUND",
+        message: "No appointment with id 2 exists",
+        details: {
+          id: 2,
+        },
+      });
+      expect(response.body.stack).toBeTruthy();
+    });
+
+    it("should 400 with invalid appointment id", async () => {
+      const response = await request.get(`${url}/invalid`);
+
+      expect(response.statusCode).toBe(400);
+      expect(response.body.code).toBe("VALIDATION_FAILED");
+      expect(response.body.details.params).toHaveProperty("id");
+    });
   });
 
   describe("POST /api/appointments", () => {
     const appointmentsToDelete = [];
-
+  
     beforeAll(async () => {
       await knex(tables.patient).insert(data.patients);
       await knex(tables.doctor).insert(data.doctors);
     });
-
+  
     afterAll(async () => {
       await knex(tables.appointment)
         .whereIn("id", appointmentsToDelete)
         .delete();
-
+  
       await knex(tables.patient).whereIn("id", dataToDelete.patients).delete();
       await knex(tables.doctor).whereIn("id", dataToDelete.doctors).delete();
     });
-
+  
     it("should 201 and return the created appointment", async () => {
       const response = await request.post(url).send({
         description: "New Appointment",
@@ -213,7 +233,7 @@ describe("Appointments", () => {
           name: "Dr. Olivia Williams Anderson",
         },
       });
-
+  
       expect(response.status).toBe(201);
       expect(response.body.id).toBeTruthy();
       expect(response.body.description).toBe("New Appointment");
@@ -228,10 +248,134 @@ describe("Appointments", () => {
         id: 1,
         name: "Dr. Olivia Williams Anderson",
       });
-
+  
       appointmentsToDelete.push(response.body.id);
     });
-  });
+  
+    it("should 404 when patient does not exist", async () => {
+      const response = await request.post(url).send({
+        description: "New Appointment",
+        numberOfBeds: 2,
+        condition: "General Checkup",
+        date: "2023-10-10T14:00:00.000Z",
+        patient: {
+          id: 123,
+          name: "Emily Smith",
+        },
+        doctor: {
+          id: 1,
+          name: "Dr. Olivia Williams Anderson",
+        },
+      });
+  
+      expect(response.statusCode).toBe(404);
+      expect(response.body).toMatchObject({
+        code: "NOT_FOUND",
+        message: "No patient with id 123 exists",
+        details: {
+          id: 123,
+        },
+      });
+      expect(response.body.stack).toBeTruthy();
+    });
+  
+    it("should 400 when missing description", async () => {
+      const response = await request.post(url).send({
+        numberOfBeds: 2,
+        condition: "General Checkup",
+        date: "2023-10-10T14:00:00.000Z",
+        patient: {
+          id: 1,
+          name: "Emily Smith",
+        },
+        doctor: {
+          id: 1,
+          name: "Dr. Olivia Williams Anderson",
+        },
+      });
+  
+      expect(response.statusCode).toBe(400);
+      expect(response.body.code).toBe("VALIDATION_FAILED");
+      expect(response.body.details.body).toHaveProperty("description");
+    });
+  
+    it("should 400 when missing numberOfBeds", async () => {
+      const response = await request.post(url).send({
+        description: "New Appointment",
+        condition: "General Checkup",
+        date: "2023-10-10T14:00:00.000Z",
+        patient: {
+          id: 1,
+          name: "Emily Smith",
+        },
+        doctor: {
+          id: 1,
+          name: "Dr. Olivia Williams Anderson",
+        },
+      });
+  
+      expect(response.statusCode).toBe(400);
+      expect(response.body.code).toBe("VALIDATION_FAILED");
+      expect(response.body.details.body).toHaveProperty("numberOfBeds");
+    });
+  
+    it("should 400 when missing condition", async () => {
+      const response = await request.post(url).send({
+        description: "New Appointment",
+        numberOfBeds: 2,
+        date: "2023-10-10T14:00:00.000Z",
+        patient: {
+          id: 1,
+          name: "Emily Smith",
+        },
+        doctor: {
+          id: 1,
+          name: "Dr. Olivia Williams Anderson",
+        },
+      });
+  
+      expect(response.statusCode).toBe(400);
+      expect(response.body.code).toBe("VALIDATION_FAILED");
+      expect(response.body.details.body).toHaveProperty("condition");
+    });
+  
+    it("should 400 when missing date", async () => {
+      const response = await request.post(url).send({
+        description: "New Appointment",
+        numberOfBeds: 2,
+        condition: "General Checkup",
+        patient: {
+          id: 1,
+          name: "Emily Smith",
+        },
+        doctor: {
+          id: 1,
+          name: "Dr. Olivia Williams Anderson",
+        },
+      });
+  
+      expect(response.statusCode).toBe(400);
+      expect(response.body.code).toBe("VALIDATION_FAILED");
+      expect(response.body.details.body).toHaveProperty("date");
+    });
+  
+    it("should 400 when missing patientId", async () => {
+      const response = await request.post(url).send({
+        description: "New Appointment",
+        numberOfBeds: 2,
+        condition: "General Checkup",
+        date: "2023-10-10T14:00:00.000Z",
+        doctor: {
+          id: 1,
+          name: "Dr. Olivia Williams Anderson",
+        },
+      });
+  
+      expect(response.statusCode).toBe(400);
+      expect(response.body.code).toBe("VALIDATION_FAILED");
+      expect(response.body.details.body).toHaveProperty("patientId");
+    });
+  });  
 
   describe("PUT /api/appointments/:id", () => {
     beforeAll(async () => {
@@ -281,6 +425,140 @@ describe("Appointments", () => {
         name: "Dr. Olivia Williams Anderson",
       });
     });
+
+    it("should 404 when updating not existing appointment", async () => {
+      const response = await request.put(`${url}/2`).send({
+        description: "Updated Appointment",
+        numberOfBeds: 4,
+        condition: "Updated Condition",
+        date: "2023-10-10T15:30:00.000Z",
+        patient: {
+          id: 1,
+          name: "Emily Smith",
+        },
+        doctor: {
+          id: 1,
+          name: "Dr. Olivia Williams Anderson",
+        },
+      });
+
+      expect(response.statusCode).toBe(404);
+      expect(response.body).toMatchObject({
+        code: "NOT_FOUND",
+        message: "No appointment with id 2 exists",
+        details: {
+          id: 2,
+        },
+      });
+      expect(response.body.stack).toBeTruthy();
+    });
+
+    it("should 404 when patient does not exist", async () => {
+      const response = await request.put(`${url}/1`).send({
+        description: "Updated Appointment",
+        numberOfBeds: 4,
+        condition: "Updated Condition",
+        date: "2023-10-10T15:30:00.000Z",
+        doctor: {
+          id: 1,
+          name: "Dr. Olivia Williams Anderson",
+        },
+        patient: {
+          id: 123,
+          name: "Emily Smith",
+        }
+      });
+
+      expect(response.statusCode).toBe(404);
+      expect(response.body).toMatchObject({
+        code: "NOT_FOUND",
+        message: "No patient with id 123 exists",
+        details: {
+          id: 123,
+        },
+      });
+      expect(response.body.stack).toBeTruthy();
+    });
+
+    it("should 400 when missing condition", async () => {
+      const response = await request.put(`${url}/4`).send({
+        description: "Updated Appointment",
+        numberOfBeds: 4,
+        date: "2023-10-10T15:30:00.000Z",
+        patient: {
+          id: 1,
+          name: "Emily Smith",
+        },
+        doctor: {
+          id: 1,
+          name: "Dr. Olivia Williams Anderson",
+        },
+      });
+
+      expect(response.statusCode).toBe(400);
+      expect(response.body.code).toBe("VALIDATION_FAILED");
+      expect(response.body.details.body).toHaveProperty("condition");
+    });
+
+    it("should 400 when missing date", async () => {
+      const response = await request.put(`${url}/4`).send({
+        condition: 102,
+        numberOfBeds: 4,
+        description: "Updated Appointment",
+        patient: {
+          id: 1,
+          name: "Emily Smith",
+        },
+        doctor: {
+          id: 1,
+          name: "Dr. Olivia Williams Anderson",
+        },
+      });
+
+      expect(response.statusCode).toBe(400);
+      expect(response.body.code).toBe("VALIDATION_FAILED");
+      expect(response.body.details.body).toHaveProperty("date");
+    });
+
+    it("should 400 when missing patientId", async () => {
+      const response = await request.put(`${url}/4`).send({
+        condition: 102,
+        numberOfBeds: 4,
+        date: "2021-05-27T13:00:00.000Z",
+        description: "Updated Appointment",
+        doctor: {
+          id: 1,
+          name: "Dr. Olivia Williams Anderson",
+        },
+        patient: {
+          name: "Emily Smith",
+        },
+      });
+
+      expect(response.statusCode).toBe(400);
+      expect(response.body.code).toBe("VALIDATION_FAILED");
+      expect(response.body.details.body).toHaveProperty("patientId");
+    });
+
+    it("should 400 when missing doctorId", async () => {
+      const response = await request.put(`${url}/4`).send({
+        condition: 102,
+        numberOfBeds: 4,
+        date: "2021-05-27T13:00:00.000Z",
+        description: "Updated Appointment",
+        patient: {
+          id: 1,
+          name: "Emily Smith",
+        },
+        doctor: {
+          name: "Dr. Olivia Williams Anderson",
+        },
+      });
+
+      expect(response.statusCode).toBe(400);
+      expect(response.body.code).toBe("VALIDATION_FAILED");
+      expect(response.body.details.body).toHaveProperty("doctorId");
+    });
   });
 
   describe("DELETE /api/appointments/:id", () => {
@@ -300,6 +578,28 @@ describe("Appointments", () => {
 
       expect(response.statusCode).toBe(204);
       expect(response.body).toEqual({});
+    });
+
+    it("should 404 with not existing patient", async () => {
+      const response = await request.delete(`${url}/4`);
+
+      expect(response.statusCode).toBe(404);
+      expect(response.body).toMatchObject({
+        code: "NOT_FOUND",
+        message: "No appointment with id 4 exists",
+        details: {
+          id: 4,
+        },
+      });
+      expect(response.body.stack).toBeTruthy();
+    });
+
+    it("should 400 with invalid appointment id", async () => {
+      const response = await request.delete(`${url}/invalid`);
+
+      expect(response.statusCode).toBe(400);
+      expect(response.body.code).toBe("VALIDATION_FAILED");
+      expect(response.body.details.params).toHaveProperty("id");
     });
   });
 });

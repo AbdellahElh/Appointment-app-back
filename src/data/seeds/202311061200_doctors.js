@@ -1,33 +1,3 @@
-// const { tables } = require("..");
-// module.exports = {
-//   seed: async (knex) => {
-//     await knex(tables.doctor).delete();
-//     await knex(tables.doctor).insert([
-//       {
-//         id: 1,
-//         name: "Dr. Olivia Williams Anderson",
-//         speciality: "Cardiologist",
-//         numberOfPatients: 3, //this week
-//         photo: "../assets/imgs/doc1.jpg",
-//       },
-//       {
-//         id: 2,
-//         name: "Dr. Michael Brown Smith",
-//         speciality: "Dentist",
-//         numberOfPatients: 2,
-//         photo: "../assets/imgs/doc2.jpg",
-//       },
-//       {
-//         id: 3,
-//         name: "Dr. Jessica Davis Wilson",
-//         speciality: "Orthopedic Surgeon",
-//         numberOfPatients: 1,
-//         photo: "../assets/imgs/doc3.jpg",
-//       },
-//     ]);
-//   },
-// };
-
 const { tables } = require("..");
 
 module.exports = {

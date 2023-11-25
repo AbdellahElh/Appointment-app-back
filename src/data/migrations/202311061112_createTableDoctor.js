@@ -22,20 +22,3 @@ module.exports = {
   },
 };
 
-// const { tables } = require("../index.js");
-
-// module.exports = {
-//   up: async (knex) => {
-//     await knex.schema.createTable(tables.doctor, (table) => {
-//       table.increments("id");
-
-//       table.string("name", 255).notNullable();
-//       table.string("speciality", 255).notNullable();
-//       table.integer("numberOfPatients").unsigned().notNullable();
-//       table.string("photo", 255);
-//     });
-//   },
-//   down: (knex) => {
-//     return knex.schema.dropTableIfExists(tables.doctor);
-//   },
-// };

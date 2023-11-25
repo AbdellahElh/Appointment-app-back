@@ -1,63 +1,6 @@
-// const doctorRepository = require("../repository/doctor");
-
-// const getAll = async () => {
-//   const items = await doctorRepository.findAll();
-//   return {
-//     items,
-//     count: items.length,
-//   };
-// };
-
-// const getById = async (id) => {
-//   const doctor = await doctorRepository.findById(id);
-
-//   if (!doctor) {
-//     throw Error(`No doctor with id ${id} exists`, { id });
-//   }
-
-//   return doctor;
-// };
-
-// const create = async ({ name, speciality, numberOfPatients, photo }) => {
-//   const id = await doctorRepository.create({
-//     name,
-//     speciality,
-//     numberOfPatients,
-//     photo,
-//   });
-//   return getById(id);
-// };
-
-// const updateById = async (
-//   id,
-//   { doctor, speciality, numberOfPatients, photo }
-// ) => {
-//   await doctorRepository.updateById(id, {
-//     doctor,
-//     speciality,
-//     numberOfPatients,
-//     photo,
-//   });
-//   return getById(id);
-// };
-
-// const deleteById = async (id) => {
-//   const deleted = await doctorRepository.deleteById(id);
-
-//   if (!deleted) {
-//     throw Error(`No doctor with id ${id} exists`, { id });
-//   }
-// };
-
-// module.exports = {
-//   getAll,
-//   getById,
-//   create,
-//   updateById,
-//   deleteById,
-// };
-
 const doctorRepository = require("../repository/doctor");
+const ServiceError = require("../core/serviceError");
+const handleDBError = require("./_handleDBError");
 
 const getAll = async () => {
   const items = await doctorRepository.findAll();
@@ -71,7 +14,7 @@ const getById = async (id) => {
   const doctor = await doctorRepository.findById(id);
 
   if (!doctor) {
-    throw Error(`No doctor with id ${id} exists`, { id });
+    throw ServiceError.notFound(`No doctor with id ${id} exists`, { id });
   }
 
   return doctor;
@@ -88,18 +31,22 @@ const create = async ({
   about,
   timeSlots,
 }) => {
-  const id = await doctorRepository.create({
-    name,
-    speciality,
-    numberOfPatients,
-    photo,
-    hospital,
-    numberOfRatings,
-    rating,
-    about,
-    timeSlots,
-  });
-  return getById(id);
+  try {
+    const id = await doctorRepository.create({
+      name,
+      speciality,
+      numberOfPatients,
+      photo,
+      hospital,
+      numberOfRatings,
+      rating,
+      about,
+      timeSlots,
+    });
+    return getById(id);
+  } catch (error) {
+    throw handleDBError(error);
+  }
 };
 
 const updateById = async (
@@ -116,17 +63,22 @@ const updateById = async (
     timeSlots,
   }
 ) => {
-  await doctorRepository.updateById(id, {
-    name,
-    speciality,
-    numberOfPatients,
-    photo,
-    hospital,
-    numberOfRatings,
-    rating,
-    about,
-    timeSlots,
-  });
+  try {
+    await doctorRepository.updateById(id, {
+      name,
+      speciality,
+      numberOfPatients,
+      photo,
+      hospital,
+      numberOfRatings,
+      rating,
+      about,
+      timeSlots,
+    });
+  } catch (error) {
+    throw handleDBError(error);
+  }
+
   return getById(id);
 };
 
@@ -134,7 +86,7 @@ const deleteById = async (id) => {
   const deleted = await doctorRepository.deleteById(id);
 
   if (!deleted) {
-    throw Error(`No doctor with id ${id} exists`, { id });
+    throw ServiceError.notFound(`No doctor with id ${id} exists`, { id });
   }
 };
 

@@ -1,10 +1,10 @@
 const appointmentRepo = require("../repository/appointment");
 const patientService = require("./patient");
-const { APPOINTMENT_DATA } = require("../data/mock_data");
+const ServiceError = require("../core/serviceError");
+const handleDBError = require("./_handleDBError");
 
 const getAll = async () => {
   const items = await appointmentRepo.findAll();
-  // const items = APPOINTMENT_DATA;
   return {
     items,
     count: items.length,
@@ -15,7 +15,8 @@ const getById = async (id) => {
   const appointment = await appointmentRepo.findById(id);
 
   if (!appointment) {
-    throw Error(`No appointment with id ${id} exists`, { id });
+    // throw new Error(`There is no appointment with id ${id}`); // 👈 2
+    throw ServiceError.notFound(`No appointment with id ${id} exists`, { id });
   }
 
   return appointment;
@@ -32,61 +33,70 @@ const create = async ({
   const existingPatient = await patientService.getById(patientId);
 
   if (!existingPatient) {
-    throw Error(`There is no patient with id ${id}.`, { id });
+    throw ServiceError.notFound(`There is no patient with id ${id}.`, { id }); //er is meer info, drm niet verwijderen
   }
 
-  const id = await appointmentRepo.create({
-    date,
-    description,
-    numberOfBeds,
-    condition,
-    patientId,
-    doctorId,
-  });
-  return getById(id);
+  try {
+    const id = await appointmentRepo.create({
+      date,
+      description,
+      numberOfBeds,
+      condition,
+      patientId,
+      doctorId,
+    });
+    return getById(id);
+  } catch (error) {
+    throw handleDBError(error);
+  }
 };
 
 const updateById = async (
   id,
-  {
-    patient,
-    doctor,
-    date,
-    description,
-    numberOfBeds,
-    condition,
-  }
+  { patient, doctor, date, description, numberOfBeds, condition }
 ) => {
-  const patientId = Number(patient.id);
-  const doctorId = Number(doctor.id);
+  try {
+    const patientId = Number(patient.id);
+    const doctorId = Number(doctor.id);
 
-  if (isNaN(patientId)) {
-    throw Error(`Invalid patientId: ${patientId}`);
+    if (isNaN(patientId)) {
+      throw ServiceError.validationFailed(`Invalid patientId: ${patientId}`);
+    }
+
+    const existingPatient = await patientService.getById(patientId);
+
+    if (!existingPatient) {
+      throw ServiceError.notFound(`There is no patient with id ${id}.`, { id });
+    }
+
+    const existingAppointment = await getById(id);
+
+    if (!existingAppointment) {
+      throw ServiceError.notFound(`No appointment with id ${id} exists`, {
+        id,
+      });
+    }
+
+    await appointmentRepo.updateById(id, {
+      patientId,
+      doctorId,
+      date,
+      description,
+      numberOfBeds,
+      condition,
+    });
+
+    return getById(id);
+  } catch (error) {
+    throw handleDBError(error);
   }
-
-  const existingPatient = await patientService.getById(patientId);
-
-  if (!existingPatient) {
-    throw Error(`There is no patient with id ${id}.`, { id });
-  }
-
-  await appointmentRepo.updateById(id, {
-    patientId,
-    doctorId,
-    date,
-    description,
-    numberOfBeds,
-    condition,
-  });
-  return getById(id);
 };
-
 
 const deleteById = async (id) => {
   const deleted = await appointmentRepo.deleteById(id);
 
   if (!deleted) {
-    throw Error(`No appointment with id ${id} exists`, { id });
+    throw ServiceError.notFound(`No appointment with id ${id} exists`, { id });
   }
 };
 

@@ -1,81 +1,82 @@
-// const Router = require("@koa/router");
-// const doctorService = require("../service/doctor");
-
-// const getAllDoctors = async (ctx) => {
-//   ctx.body = await doctorService.getAll();
-// };
-
-// const createDoctor = async (ctx) => {
-//   const newDoctor = await doctorService.create({
-//     ...ctx.request.body,
-//     id: Number(ctx.request.body.id),
-//     doctor: ctx.request.body.doctor,
-//     speciality: ctx.request.body.speciality,
-//     numberOfPatients: Number(ctx.request.body.numberOfPatients),
-//     photo: ctx.request.body.photo,
-//   });
-//   ctx.status = 201;
-//   ctx.body = newDoctor;
-// };
-
-// const getDoctorsById = async (ctx) => {
-//   ctx.body = await doctorService.getById(Number(ctx.params.id));
-// };
-
-// const updateDoctor = async (ctx) => {
-//   ctx.body = await doctorService.updateById(Number(ctx.params.id), {
-//     ...ctx.request.body,
-//     id: Number(ctx.request.body.id),
-//     doctor: ctx.request.body.doctor,
-//     speciality: ctx.request.body.speciality,
-//     numberOfPatients: Number(ctx.request.body.numberOfPatients),
-//     photo: ctx.request.body.photo,
-//   });
-// };
-
-// const deleteDoctor = async (ctx) => {
-//   await doctorService.deleteById(Number(ctx.params.id));
-//   ctx.status = 204;
-// };
-
-// module.exports = (app) => {
-//   const router = new Router({
-//     prefix: "/doctors",
-//   });
-
-//   router.get("/", getAllDoctors);
-//   router.post("/", createDoctor);
-//   router.get("/:id", getDoctorsById);
-//   router.put("/:id", updateDoctor);
-//   router.delete("/:id", deleteDoctor);
-
-//   app.use(router.routes()).use(router.allowedMethods());
-// };
-
 const Router = require("@koa/router");
 const doctorService = require("../service/doctor");
+const Joi = require("joi");
+const validate = require("../core/validation");
 
 const getAllDoctors = async (ctx) => {
   ctx.body = await doctorService.getAll();
 };
+getAllDoctors.validationScheme = null;
 
 const createDoctor = async (ctx) => {
   const newDoctor = await doctorService.create(ctx.request.body);
   ctx.status = 201;
   ctx.body = newDoctor;
 };
+createDoctor.validationScheme = {
+  body: Joi.object({
+    name: Joi.string(),
+    speciality: Joi.string(),
+    numberOfPatients: Joi.number().integer().positive(),
+    photo: Joi.string(),
+    hospital: Joi.string(),
+    numberOfRatings: Joi.number().integer().positive(),
+    rating: Joi.number().positive(),
+    about: Joi.string(),
+    timeSlots: Joi.array().items(
+      Joi.object({
+        day: Joi.string(),
+        time: Joi.string(),
+      })
+    ),
+  }),
+};
 
 const getDoctorsById = async (ctx) => {
   ctx.body = await doctorService.getById(Number(ctx.params.id));
 };
+getDoctorsById.validationScheme = {
+  params: Joi.object({
+    id: Joi.number().integer().positive().required(),
+  }),
+};
 
 const updateDoctor = async (ctx) => {
-  ctx.body = await doctorService.updateById(Number(ctx.params.id), ctx.request.body);
+  ctx.body = await doctorService.updateById(
+    Number(ctx.params.id),
+    ctx.request.body
+  );
+};
+updateDoctor.validationScheme = {
+  params: Joi.object({
+    id: Joi.number().integer().positive(),
+  }),
+  body: Joi.object({
+    name: Joi.string(),
+    speciality: Joi.string(),
+    numberOfPatients: Joi.number().integer().positive(),
+    photo: Joi.string(),
+    hospital: Joi.string(),
+    numberOfRatings: Joi.number().integer().positive(),
+    rating: Joi.number().positive(),
+    about: Joi.string(),
+    timeSlots: Joi.array().items(
+      Joi.object({
+        day: Joi.string(),
+        time: Joi.string(),
+      })
+    ),
+  }),
 };
 
 const deleteDoctor = async (ctx) => {
   await doctorService.deleteById(Number(ctx.params.id));
   ctx.status = 204;
+};
+deleteDoctor.validationScheme = {
+  params: Joi.object({
+    id: Joi.number().integer().positive().required(),
+  }),
 };
 
 module.exports = (app) => {
@@ -83,12 +84,11 @@ module.exports = (app) => {
     prefix: "/doctors",
   });
 
-  router.get("/", getAllDoctors);
-  router.post("/", createDoctor);
-  router.get("/:id", getDoctorsById);
-  router.put("/:id", updateDoctor);
-  router.delete("/:id", deleteDoctor);
+  router.get("/", validate(getAllDoctors.validationScheme), getAllDoctors);
+  router.post("/", validate(createDoctor.validationScheme), createDoctor);
+  router.get("/:id", validate(getDoctorsById.validationScheme), getDoctorsById);
+  router.put("/:id", validate(updateDoctor.validationScheme), updateDoctor);
+  router.delete("/:id", validate(deleteDoctor.validationScheme), deleteDoctor);
 
   app.use(router.routes()).use(router.allowedMethods());
 };
-
