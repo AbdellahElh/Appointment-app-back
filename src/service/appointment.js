@@ -1,5 +1,6 @@
 const appointmentRepo = require("../repository/appointment");
 const patientService = require("./patient");
+const doctorService = require("./doctor");
 const ServiceError = require("../core/serviceError");
 const handleDBError = require("./_handleDBError");
 
@@ -11,11 +12,14 @@ const getAll = async () => {
   };
 };
 
-const getById = async (id) => {
-  const appointment = await appointmentRepo.findById(id);
+const getById = async (id, patientId, doctorId) => {
+  const appointment = await appointmentRepo.findById(id, patientId, doctorId);
 
-  if (!appointment) {
-    // throw new Error(`There is no appointment with id ${id}`); // 👈 2
+  if (
+    !appointment ||
+    appointment.patient.id !== patientId ||
+    appointment.doctor.id !== doctorId
+  ) {
     throw ServiceError.notFound(`No appointment with id ${id} exists`, { id });
   }
 
@@ -31,9 +35,13 @@ const create = async ({
   doctorId,
 }) => {
   const existingPatient = await patientService.getById(patientId);
-
   if (!existingPatient) {
     throw ServiceError.notFound(`There is no patient with id ${id}.`, { id }); //er is meer info, drm niet verwijderen
+  }
+
+  const existingDoctor = await doctorService.getById(doctorId);
+  if (!existingDoctor) {
+    throw ServiceError.notFound(`There is no doctor with id ${id}.`, { id });
   }
 
   try {
@@ -45,7 +53,7 @@ const create = async ({
       patientId,
       doctorId,
     });
-    return getById(id);
+    return getById(id, patientId, doctorId);
   } catch (error) {
     throw handleDBError(error);
   }
@@ -57,31 +65,43 @@ const updateById = async (
 ) => {
   if (patientId) {
     const existingPatient = await patientService.getById(patientId);
-
     if (!existingPatient) {
       throw ServiceError.notFound(`There is no patient with id ${id}.`, { id });
     }
   }
+
+  if (doctorId) {
+    const existingDoctor = await doctorService.getById(doctorId);
+    if (!existingDoctor) {
+      throw ServiceError.notFound(`There is no doctor with id ${id}.`, { id });
+    }
+  }
   try {
     await appointmentRepo.updateById(id, {
-      patientId,
-      doctorId,
       date,
       description,
       numberOfBeds,
       condition,
+      patientId,
+      doctorId,
     });
-    return getById(id);
+    return getById(id, patientId, doctorId);
   } catch (error) {
     throw handleDBError(error);
   }
 };
 
-const deleteById = async (id) => {
-  const deleted = await appointmentRepo.deleteById(id);
+const deleteById = async (id, patientId, doctorId) => {
+  try {
+    const deleted = await appointmentRepo.deleteById(id, patientId, doctorId);
 
-  if (!deleted) {
-    throw ServiceError.notFound(`No appointment with id ${id} exists`, { id });
+    if (!deleted) {
+      throw ServiceError.notFound(`No appointment with id ${id} exists`, {
+        id,
+      });
+    }
+  } catch (error) {
+    throw handleDBError(error);
   }
 };
 

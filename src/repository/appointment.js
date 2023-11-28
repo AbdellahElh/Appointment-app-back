@@ -33,7 +33,7 @@ const SELECT_COLUMNS = [
   `${tables.patient}.name as patient_name`,
 ];
 
-const findAll = async () => {
+const findAll = async (patientId, doctorId) => {
   const appointments = await getKnex()(tables.appointment)
     .join(
       tables.doctor,
@@ -48,15 +48,41 @@ const findAll = async () => {
       `${tables.patient}.id`
     )
     .select(SELECT_COLUMNS)
+    .where(`${tables.appointment}.patient_id`, patientId)
+    .where(`${tables.appointment}.doctor_id`, doctorId)
     .orderBy("date", "ASC");
 
   return appointments.map(formatAppointment);
 };
 
-const findCount = async () => {
-  const [count] = await getKnex()(tables.appointment).count();
-
+const findCount = async (patientId, doctorId) => {
+  const [count] = await getKnex()(tables.appointment)
+    .count()
+    .where(`${tables.appointment}.patient_id`, patientId)
+    .where(`${tables.appointment}.doctor_id`, doctorId);
   return count["count(*)"];
+};
+
+const findById = async (id, patientId, doctorId) => {
+  const appointment = await getKnex()(tables.appointment)
+    .join(
+      tables.doctor,
+      `${tables.appointment}.doctor_id`,
+      "=",
+      `${tables.doctor}.id`
+    )
+    .join(
+      tables.patient,
+      `${tables.appointment}.patient_id`,
+      "=",
+      `${tables.patient}.id`
+    )
+    .where(`${tables.appointment}.id`, id)
+    .where(`${tables.appointment}.patient_id`, patientId)
+    .where(`${tables.appointment}.doctor_id`, doctorId)
+    .first(SELECT_COLUMNS);
+
+  return appointment && formatAppointment(appointment);
 };
 
 const create = async ({
@@ -85,38 +111,19 @@ const create = async ({
   }
 };
 
-const findById = async (id) => {
-  const appointment = await getKnex()(tables.appointment)
-    .join(
-      tables.doctor,
-      `${tables.appointment}.doctor_id`,
-      "=",
-      `${tables.doctor}.id`
-    )
-    .join(
-      tables.patient,
-      `${tables.appointment}.patient_id`,
-      "=",
-      `${tables.patient}.id`
-    )
-    .where(`${tables.appointment}.id`, id)
-    .first(SELECT_COLUMNS);
-
-  return appointment && formatAppointment(appointment);
-};
 const updateById = async (
   id,
-  { description, numberOfBeds, condition, date, doctorId, patientId }
+  { patientId, doctorId, date, description, numberOfBeds, condition }
 ) => {
   try {
     await getKnex()(tables.appointment)
       .update({
+        date,
         description,
         numberOfBeds,
         condition,
-        date,
-        doctor_id: doctorId,
         patient_id: patientId,
+        doctor_id: doctorId,
       })
       .where(`${tables.appointment}.id`, id);
     return id;
@@ -128,10 +135,12 @@ const updateById = async (
   }
 };
 
-const deleteById = async (id, patientId) => {
+const deleteById = async (id, patientId, doctorId) => {
   try {
     const rowsAffected = await getKnex()(tables.appointment)
       .where(`${tables.appointment}.id`, id)
+      .where(`${tables.appointment}.patient_id`, patientId)
+      .where(`${tables.appointment}.doctor_id`, doctorId)
       .delete();
 
     return rowsAffected > 0;

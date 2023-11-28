@@ -4,6 +4,7 @@ const installHealthRouter = require("./health");
 const installPatientRouter = require("./patient");
 const installDoctorRouter = require("./doctor");
 
+
 module.exports = (app) => {
   const router = new Router({
     prefix: "/api",

@@ -10,6 +10,11 @@ const NODE_ENV = config.get('env');
 const CORS_ORIGINS = config.get('cors.origins');
 const CORS_MAX_AGE = config.get('cors.maxAge');
 
+/**
+ * Install all required middlewares in the given app.
+ *
+ * @param {koa.Application} app - The Koa application.
+ */
 module.exports = function installMiddleware(app) {
    app.use(
     koaCors({
@@ -78,6 +83,14 @@ module.exports = function installMiddleware(app) {
 
         if (error.isValidationFailed) {
           statusCode = 400;
+        }
+
+        if (error.isUnauthorized) {
+          statusCode = 401;
+        }
+
+        if (error.isForbidden) {
+          statusCode = 403;
         }
       }
 

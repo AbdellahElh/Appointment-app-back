@@ -1,7 +1,8 @@
 const Router = require("@koa/router");
-const appointmentService = require("../service/appointment");
 const Joi = require("joi");
 const validate = require("../core/validation");
+const { requireAuthentication } = require('../core/auth');
+const appointmentService = require("../service/appointment");
 
 const getAllAppointments = async (ctx) => {
   ctx.body = await appointmentService.getAll();
@@ -82,6 +83,8 @@ module.exports = (app) => {
   const router = new Router({
     prefix: "/appointments",
   });
+
+  router.use(requireAuthentication);
 
   router.get(
     "/",

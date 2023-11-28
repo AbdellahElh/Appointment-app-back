@@ -103,6 +103,7 @@ const tables = Object.freeze({
   appointment: "appointment",
   doctor: "doctor",
   patient: "patient",
+  user: "user",
 });
 
 module.exports = {

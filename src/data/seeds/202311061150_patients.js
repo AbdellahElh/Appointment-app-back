@@ -2,10 +2,7 @@ const { tables } = require("..");
 
 module.exports = {
   seed: async (knex) => {
-    // first delete all entries
     await knex(tables.patient).delete();
-
-    // then add the fresh patients (all passwords are 12345678)
     await knex(tables.patient).insert([
       {
         id: 1,

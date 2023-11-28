@@ -11,7 +11,6 @@ module.exports = {
 
       table.integer("patient_id").unsigned().notNullable();
 
-      // Add foreign key constraint for patient_id
       table
         .foreign("patient_id", "fk_appointment_patient")
         .references(`${tables.patient}.id`)
@@ -19,7 +18,6 @@ module.exports = {
 
       table.integer("doctor_id").unsigned().notNullable();
 
-      // Add foreign key constraint for doctor_id
       table
         .foreign("doctor_id", "fk_appointment_doctor")
         .references(`${tables.doctor}.id`)

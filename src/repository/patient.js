@@ -1,41 +1,81 @@
 const { getLogger } = require("../core/logging");
 const { tables, getKnex } = require("../data/index");
 
-const findAll = () => {
-  getLogger().info("Finding all patients");
-  return getKnex()(tables.patient).select().orderBy("name", "ASC");
+const formatPatient = ({ id, email, roles, ...patient }) => {
+  return {
+    ...patient,
+    user: {
+      id,
+      email,
+      roles,
+    },
+  };
 };
 
-const findByName = (name) => {
-  return getKnex()(tables.patient).where("name", name).first();
+const SELECT_COLUMNS = [
+  `${tables.user}.id as user_id`,
+  `${tables.user}.email`,
+  `${tables.user}.roles`,
+  `${tables.patient}.*`, // Include all other columns from the patient table
+];
+
+const findAll = async () => {
+  const patients = await getKnex()(tables.patient)
+    .join(tables.user, `${tables.user}.id`, "=", `${tables.patient}.id`)
+    .select(SELECT_COLUMNS)
+    .orderBy(`${tables.patient}.name`, "ASC");
+
+  return patients.map(formatPatient);
 };
 
-const findById = (id) => {
-  getLogger().info("Querying patient by id", { id });
-  return getKnex()(tables.patient).where("id", id).first();
+const findCount = async () => {
+  const [count] = await getKnex()(tables.patient).count();
+
+  return count["count(*)"];
+};
+
+const findById = async (id) => {
+  const patient = await getKnex()(tables.patient)
+    .join(tables.user, `${tables.user}.id`, "=", `${tables.patient}.id`)
+    .where(`${tables.patient}.id`, id)
+    .first(SELECT_COLUMNS);
+
+  return patient && formatPatient(patient);
+};
+
+const findByEmail = async (email) => {
+  return getKnex()(tables.user).where("email", email).first();
 };
 
 const create = async ({
+  email,
+  passwordHash,
+  roles,
   name,
   street,
   number,
   postalCode,
   city,
-
   birthdate,
 }) => {
   try {
-    const [id] = await getKnex()(tables.patient).insert({
+    const [userId] = await getKnex()(tables.user).insert({
+      email,
+      password_hash: passwordHash,
+      roles: JSON.stringify(roles),
+    });
+
+    await getKnex()(tables.patient).insert({
+      id: userId, // Use the user's id as the patient's id
       name,
       street,
       number,
       postalCode,
       city,
-
       birthdate,
     });
 
-    return id;
+    return userId;
   } catch (error) {
     getLogger().error("Error in create", {
       error,
@@ -46,9 +86,28 @@ const create = async ({
 
 const updateById = async (
   id,
-  { name, street, number, postalCode, city, birthdate }
+  {
+    name,
+    email,
+    passwordHash,
+    roles,
+    street,
+    number,
+    postalCode,
+    city,
+    birthdate,
+  }
 ) => {
   try {
+    await getKnex()(tables.user)
+      .update({
+        id,
+        email,
+        password_hash: passwordHash,
+        roles: JSON.stringify(roles),
+      })
+      .where("id", id);
+
     await getKnex()(tables.patient)
       .update({
         name,
@@ -56,7 +115,6 @@ const updateById = async (
         number,
         postalCode,
         city,
-
         birthdate,
       })
       .where("id", id);
@@ -72,9 +130,9 @@ const updateById = async (
 
 const deleteById = async (id) => {
   try {
-    const rowsAffected = await getKnex()(tables.patient)
-      .delete()
-      .where("id", id);
+    const rowsAffected = await getKnex()(tables.user).delete().where("id", id);
+
+    await getKnex()(tables.patient).delete().where("id", id);
 
     return rowsAffected > 0;
   } catch (error) {
@@ -87,8 +145,9 @@ const deleteById = async (id) => {
 
 module.exports = {
   findAll,
+  findCount,
   findById,
-  findByName,
+  findByEmail,
   create,
   updateById,
   deleteById,

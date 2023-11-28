@@ -1,37 +1,56 @@
 const { getLogger } = require("../core/logging");
 const { tables, getKnex } = require("../data/index");
 
-const findAll = () => {
-  getLogger().info("Finding all doctors");
-  return getKnex()(tables.doctor).select().orderBy("name", "ASC");
+const formatDoctor = ({ id, email, roles, ...doctor }) => {
+  return {
+    ...doctor,
+    user: {
+      id,
+      email,
+      roles,
+    },
+  };
 };
 
-// const findByName = async (name) => {
-//   getLogger().info("Querying doctor by name", { name });
-//   return getKnex()(tables.doctor).where("name", "like", `%${name}%`);
-// };
+const SELECT_COLUMNS = [
+  `${tables.user}.id as user_id`,
+  `${tables.user}.email`,
+  `${tables.user}.roles`,
+  `${tables.doctor}.*`, // Include all other columns from the doctor table
+];
 
-// const findBySpeciality = async (speciality) => {
-//   getLogger().info("Querying doctor by speciality", { speciality });
-//   return getKnex()(tables.doctor).where("speciality", "like", `%${speciality}%`);
-// };
+const findAll = async () => {
+  const doctors = await getKnex()(tables.doctor)
+    .join(`${tables.user}`, `${tables.user}.id`, "=", `${tables.doctor}.id`)
+    .select(SELECT_COLUMNS)
+    .orderBy(`${tables.doctor}.name`, "ASC");
 
-// const search = async (searchTerm, searchBy) => {
-//   getLogger().info("Searching doctors", { searchTerm, searchBy });
+  return doctors.map(formatDoctor);
+};
 
-//   if (!['name', 'speciality'].includes(searchBy)) {
-//     throw new Error('Invalid searchBy parameter');
-//   }
+const findCount = async () => {
+  const [count] = await getKnex()(tables.doctor).count();
 
-//   return getKnex()(tables.doctor).where(searchBy, 'ilike', `%${searchTerm}%`);
-// };
+  return count["count(*)"];
+};
 
-const findById = (id) => {
-  getLogger().info("Querying doctor by id", { id });
-  return getKnex()(tables.doctor).where("id", id).first();
+const findById = async (id) => {
+  const doctor = await getKnex()(tables.doctor)
+  .join(`${tables.user}`, `${tables.user}.id`, "=", `${tables.doctor}.id`)
+    .where(`${tables.doctor}.id`, id)
+    .first(SELECT_COLUMNS);
+
+  return doctor && formatDoctor(doctor);
+};
+
+const findByEmail = async (email) => {
+  return getKnex()(tables.user).where("email", email).first();
 };
 
 const create = async ({
+  email,
+  passwordHash,
+  roles,
   name,
   speciality,
   numberOfPatients,
@@ -43,7 +62,14 @@ const create = async ({
   timeSlots,
 }) => {
   try {
-    const [id] = await getKnex()(tables.doctor).insert({
+    const [userId] = await getKnex()(tables.user).insert({
+      email,
+      password_hash: passwordHash,
+      roles: JSON.stringify(roles),
+    });
+
+    await getKnex()(tables.doctor).insert({
+      id: userId, // Use the user's id as the doctor's id
       name,
       speciality,
       numberOfPatients,
@@ -55,7 +81,7 @@ const create = async ({
       timeSlots: JSON.stringify(timeSlots),
     });
 
-    return id;
+    return userId;
   } catch (error) {
     getLogger().error("Error in create", {
       error,
@@ -68,6 +94,9 @@ const updateById = async (
   id,
   {
     name,
+    email,
+    passwordHash,
+    roles,
     speciality,
     numberOfPatients,
     photo,
@@ -79,6 +108,15 @@ const updateById = async (
   }
 ) => {
   try {
+    await getKnex()(tables.user)
+      .update({
+        id,
+        email,
+        password_hash: passwordHash,
+        roles: JSON.stringify(roles),
+      })
+      .where("id", id);
+
     await getKnex()(tables.doctor)
       .update({
         name,
@@ -104,9 +142,9 @@ const updateById = async (
 
 const deleteById = async (id) => {
   try {
-    const rowsAffected = await getKnex()(tables.doctor)
-      .delete()
-      .where("id", id);
+    const rowsAffected = await getKnex()(tables.user).delete().where("id", id);
+
+    await getKnex()(tables.doctor).delete().where("id", id);
 
     return rowsAffected > 0;
   } catch (error) {
@@ -119,10 +157,9 @@ const deleteById = async (id) => {
 
 module.exports = {
   findAll,
+  findCount,
   findById,
-  // findByName,
-  // findBySpeciality,
-  // search,
+  findByEmail,
   create,
   updateById,
   deleteById,
