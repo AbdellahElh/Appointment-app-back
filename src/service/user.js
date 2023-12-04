@@ -1,4 +1,3 @@
-const config = require("config");
 const userRepository = require("../repository/user");
 const ServiceError = require("../core/serviceError");
 const { hashPassword, verifyPassword } = require("../core/password");
@@ -32,16 +31,17 @@ const checkAndParseSession = async (authHeader) => {
 
   const authToken = authHeader.substring(7);
   try {
-    const { roles, userId } = await verifyJWT(authToken);
+    const { roles, userId, type } = await verifyJWT(authToken);
 
     return {
       userId,
       roles,
+      type,
       authToken,
     };
   } catch (error) {
     getLogger().error(error.message, { error });
-    throw new Error(error.message);
+    throw new Error(error.message); //we trowen een tijdelijk 500
   }
 };
 

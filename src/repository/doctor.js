@@ -1,11 +1,11 @@
 const { getLogger } = require("../core/logging");
 const { tables, getKnex } = require("../data/index");
 
-const formatDoctor = ({ id, email, roles, ...doctor }) => {
+const formatDoctor = ({ doctorId, email, roles, ...doctor }) => {
   return {
     ...doctor,
     user: {
-      id,
+      id: doctorId,
       email,
       roles,
     },
@@ -13,7 +13,7 @@ const formatDoctor = ({ id, email, roles, ...doctor }) => {
 };
 
 const SELECT_COLUMNS = [
-  `${tables.user}.id as user_id`,
+  `${tables.user}.id as doctorId`,
   `${tables.user}.email`,
   `${tables.user}.roles`,
   `${tables.doctor}.*`, // Include all other columns from the doctor table
@@ -36,7 +36,7 @@ const findCount = async () => {
 
 const findById = async (id) => {
   const doctor = await getKnex()(tables.doctor)
-  .join(`${tables.user}`, `${tables.user}.id`, "=", `${tables.doctor}.id`)
+    .join(`${tables.user}`, `${tables.user}.id`, "=", `${tables.doctor}.id`)
     .where(`${tables.doctor}.id`, id)
     .first(SELECT_COLUMNS);
 

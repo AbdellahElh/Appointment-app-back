@@ -6,11 +6,15 @@ const { requireAuthentication, makeRequireRole } = require("../core/auth");
 const Role = require("../core/roles");
 
 const checkDoctorId = (ctx, next) => {
-  const { doctorId, roles } = ctx.state.session;
+  const { userId, roles } = ctx.state.session;
   const { id } = ctx.params;
 
   // You can only get our own data unless you're an admin
-  if (id !== doctorId && !roles.includes(Role.ADMIN)) {
+  if (
+    id !== userId &&
+    !roles.includes(Role.DOCTOR) &&
+    !roles.includes(Role.ADMIN)
+  ) {
     return ctx.throw(
       403,
       "You are not allowed to view this doctor's information",
@@ -135,27 +139,27 @@ module.exports = function installDoctorsRoutes(app) {
   // Public routes
   router.post("/login", validate(login.validationScheme), login);
   router.post("/register", validate(register.validationScheme), register);
-  router.get("/", validate(getAllDoctors.validationScheme), getAllDoctors);
+  // router.get("/", validate(getAllDoctors.validationScheme), getAllDoctors);
   router.get("/:id", validate(getDoctorsById.validationScheme), getDoctorsById);
 
   const requireAdmin = makeRequireRole(Role.ADMIN);
 
   // Routes with authentication/authorization
-  // router.get(
-  //   "/",
-  //   requireAuthentication,
-  //   requireAdmin,
-  //   validate(getAllDoctors.validationScheme),
-  //   checkDoctorId,
-  //   getAllDoctors
-  // );
-  // router.get(
-  //   "/:id",
-  //   requireAuthentication,
-  //   validate(getDoctorsById.validationScheme),
-  //   checkDoctorId,
-  //   getDoctorsById
-  // );
+  router.get(
+    "/",
+    requireAuthentication,
+    requireAdmin,
+    validate(getAllDoctors.validationScheme),
+    // checkDoctorId,
+    getAllDoctors
+  );
+  router.get(
+    "/:id",
+    requireAuthentication,
+    validate(getDoctorsById.validationScheme),
+    checkDoctorId,
+    getDoctorsById
+  );
   router.put(
     "/:id",
     requireAuthentication,

@@ -1,6 +1,6 @@
-const supertest = require("supertest");
-const createServer = require("../../src/createServer");
-const { getKnex, tables } = require("../../src/data");
+const { tables } = require("../../src/data");
+const { withServer, login } = require('../supertest.setup'); // 👈 2 en 3
+const { testAuthHeader } = require('../common/auth'); // 👈 5
 
 const data = {
   appointments: [
@@ -32,55 +32,71 @@ const data = {
       condition: "Knee pain and difficulty walking",
     },
   ],
-  patients: [
-    {
-      id: 1,
-      name: "Emily Smith",
-      street: "789 Oak Street",
-      number: "Apt 3C",
-      postalCode: "54321",
-      city: "Metropolitan City",
-      birthdate: new Date(2001, 10, 15),
-    },
-  ],
-  doctors: [
-    {
-      id: 1,
-      name: "Dr. Olivia Williams Anderson",
-      speciality: "Cardiologist",
-      numberOfPatients: 3, //this week
-      photo: "../src/assets/imgs/doc1.jpg",
-    },
-  ],
+  // patients: [
+  //   {
+  //     id: 1,
+  //     name: "Emily Smith",
+  //     street: "789 Oak Street",
+  //     number: "Apt 3C",
+  //     postalCode: "54321",
+  //     city: "Metropolitan City",
+  //     birthdate: new Date(2001, 10, 15),
+  //   },
+  // ],
+  // doctors: [
+  //   {
+  //     id: 1,
+  //     name: "Dr. Olivia Williams Anderson",
+  //     speciality: "Cardiologist",
+  //     numberOfPatients: 3, //this week
+  //     photo: "../src/assets/imgs/doc1.jpg",
+  //   },
+  // ],
 };
 
 const dataToDelete = {
   appointments: [1, 2, 3],
-  patients: [1],
-  doctors: [1],
+  // patients: [1],
+  // doctors: [1],
 };
 
 describe("Appointments", () => {
-  let server;
-  let request;
-  let knex;
+    // let server; 👈 2
+    let request, knex, authHeader; // 👈 3
+  
+    // 👇 2
+    withServer(({
+      supertest,
+      knex: k,
+    }) => {
+      request = supertest;
+      knex = k;
+    });
+  
+    beforeAll(async () => {
+      authHeader = await login(request); // 👈 3
+    });
 
-  beforeAll(async () => {
-    server = await createServer();
-    request = supertest(server.getApp().callback());
-    knex = getKnex();
-  });
+  // let server;
+  // let request;
+  // let knex;
 
-  afterAll(async () => {
-    await server.stop();
-  });
+  // beforeAll(async () => {
+  //   server = await createServer();
+  //   request = supertest(server.getApp().callback());
+  //   knex = getKnex();
+  // });
+
+  // afterAll(async () => {
+  //   await server.stop();
+  // });
 
   const url = "/api/appointments";
 
   describe("GET /api/appointments", () => {
     beforeAll(async () => {
-      await knex(tables.patient).insert(data.patients);
-      await knex(tables.doctor).insert(data.doctors);
+      // await knex(tables.patient).insert(data.patients);
+      // await knex(tables.doctor).insert(data.doctors);
       await knex(tables.appointment).insert(data.appointments);
     });
 
@@ -89,13 +105,13 @@ describe("Appointments", () => {
         .whereIn("id", dataToDelete.appointments)
         .delete();
 
-      await knex(tables.patient).whereIn("id", dataToDelete.patients).delete();
+      // await knex(tables.patient).whereIn("id", dataToDelete.patients).delete();
 
-      await knex(tables.doctor).whereIn("id", dataToDelete.doctors).delete();
+      // await knex(tables.doctor).whereIn("id", dataToDelete.doctors).delete();
     });
 
     it("should 200 and return all appointments", async () => {
-      const response = await request.get(url);
+      const response = await request.get(url).set('Authorization', authHeader);;
       expect(response.status).toBe(200);
       expect(response.body.items.length).toBe(3);
 
@@ -137,13 +153,15 @@ describe("Appointments", () => {
       expect(response.body.code).toBe("VALIDATION_FAILED");
       expect(response.body.details.query).toHaveProperty("invalid");
     });
+    testAuthHeader(() => request.get(url));
+
   });
 
   describe("GET /api/appointments/:id", () => {
     beforeAll(async () => {
       // testdata laden in de db
-      await knex(tables.patient).insert(data.patients);
-      await knex(tables.doctor).insert(data.doctors);
+      // await knex(tables.patient).insert(data.patients);
+      // await knex(tables.doctor).insert(data.doctors);
       await knex(tables.appointment).insert(data.appointments[0]);
     });
 
@@ -153,9 +171,9 @@ describe("Appointments", () => {
         .whereIn("id", dataToDelete.appointments)
         .delete();
 
-      await knex(tables.patient).whereIn("id", dataToDelete.patients).delete();
+      // await knex(tables.patient).whereIn("id", dataToDelete.patients).delete();
 
-      await knex(tables.doctor).whereIn("id", dataToDelete.doctors).delete();
+      // await knex(tables.doctor).whereIn("id", dataToDelete.doctors).delete();
     });
 
     test("it should 200 and return the requested appointment", async () => {
@@ -205,8 +223,8 @@ describe("Appointments", () => {
     const appointmentsToDelete = [];
 
     beforeAll(async () => {
-      await knex(tables.patient).insert(data.patients);
-      await knex(tables.doctor).insert(data.doctors);
+      // await knex(tables.patient).insert(data.patients);
+      // await knex(tables.doctor).insert(data.doctors);
     });
 
     afterAll(async () => {
@@ -214,8 +232,8 @@ describe("Appointments", () => {
         .whereIn("id", appointmentsToDelete)
         .delete();
 
-      await knex(tables.patient).whereIn("id", dataToDelete.patients).delete();
-      await knex(tables.doctor).whereIn("id", dataToDelete.doctors).delete();
+      // await knex(tables.patient).whereIn("id", dataToDelete.patients).delete();
+      // await knex(tables.doctor).whereIn("id", dataToDelete.doctors).delete();
     });
 
     it("should 201 and return the created appointment", async () => {
@@ -340,8 +358,8 @@ describe("Appointments", () => {
 
   describe("PUT /api/appointments/:id", () => {
     beforeAll(async () => {
-      await knex(tables.patient).insert(data.patients);
-      await knex(tables.doctor).insert(data.doctors);
+      // await knex(tables.patient).insert(data.patients);
+      // await knex(tables.doctor).insert(data.doctors);
       await knex(tables.appointment).insert(data.appointments[0]);
     });
 
@@ -350,9 +368,9 @@ describe("Appointments", () => {
         .whereIn("id", dataToDelete.appointments)
         .delete();
 
-      await knex(tables.patient).whereIn("id", dataToDelete.patients).delete();
+      // await knex(tables.patient).whereIn("id", dataToDelete.patients).delete();
 
-      await knex(tables.doctor).whereIn("id", dataToDelete.doctors).delete();
+      // await knex(tables.doctor).whereIn("id", dataToDelete.doctors).delete();
     });
 
     it("should 200 and return the updated appointment", async () => {
@@ -482,14 +500,14 @@ describe("Appointments", () => {
 
   describe("DELETE /api/appointments/:id", () => {
     beforeAll(async () => {
-      await knex(tables.patient).insert(data.patients);
-      await knex(tables.doctor).insert(data.doctors);
+      // await knex(tables.patient).insert(data.patients);
+      // await knex(tables.doctor).insert(data.doctors);
       await knex(tables.appointment).insert(data.appointments[0]);
     });
 
     afterAll(async () => {
-      await knex(tables.patient).whereIn("id", dataToDelete.patients).delete();
-      await knex(tables.doctor).whereIn("id", dataToDelete.doctors).delete();
+      // await knex(tables.patient).whereIn("id", dataToDelete.patients).delete();
+      // await knex(tables.doctor).whereIn("id", dataToDelete.doctors).delete();
     });
 
     it("should 204 and return nothing", async () => {

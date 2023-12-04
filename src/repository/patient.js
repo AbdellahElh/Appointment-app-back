@@ -1,11 +1,11 @@
 const { getLogger } = require("../core/logging");
 const { tables, getKnex } = require("../data/index");
 
-const formatPatient = ({ id, email, roles, ...patient }) => {
+const formatPatient = ({ patientId, email, roles, ...patient }) => {
   return {
     ...patient,
     user: {
-      id,
+      id: patientId,
       email,
       roles,
     },
@@ -13,7 +13,7 @@ const formatPatient = ({ id, email, roles, ...patient }) => {
 };
 
 const SELECT_COLUMNS = [
-  `${tables.user}.id as user_id`,
+  `${tables.user}.id as patient_id`,
   `${tables.user}.email`,
   `${tables.user}.roles`,
   `${tables.patient}.*`, // Include all other columns from the patient table

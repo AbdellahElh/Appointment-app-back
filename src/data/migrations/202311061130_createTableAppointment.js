@@ -13,14 +13,16 @@ module.exports = {
 
       table
         .foreign("patient_id", "fk_appointment_patient")
-        .references(`${tables.patient}.id`)
+        // .references(`${tables.patient}.id`)
+        .references(`${tables.user}.id`)
         .onDelete("CASCADE");
 
       table.integer("doctor_id").unsigned().notNullable();
 
       table
         .foreign("doctor_id", "fk_appointment_doctor")
-        .references(`${tables.doctor}.id`)
+        // .references(`${tables.doctor}.id`)
+        .references(`${tables.user}.id`)
         .onDelete("CASCADE");
     });
   },
