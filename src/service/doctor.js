@@ -117,35 +117,15 @@ const getById = async (id) => {
   return makeExposedDoctor(doctor);
 };
 
-const register = async ({
-  email,
-  password,
-  name,
-  speciality,
-  numberOfPatients,
-  photo,
-  hospital,
-  numberOfRatings,
-  rating,
-  about,
-  timeSlots,
-}) => {
+const register = async ({ email, password, name }) => {
   try {
     const passwordHash = await hashPassword(password);
 
-    const doctorId = await doctorRepository.create({
+    const doctorId = await doctorRepository.register({
       email,
       passwordHash,
       roles: [Role.DOCTOR],
       name,
-      speciality,
-      numberOfPatients,
-      photo,
-      hospital,
-      numberOfRatings,
-      rating,
-      about,
-      timeSlots,
     });
     const doctor = await doctorRepository.findById(doctorId);
     return await makeLoginData(doctor);

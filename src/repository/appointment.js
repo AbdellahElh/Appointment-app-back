@@ -34,7 +34,7 @@ const SELECT_COLUMNS = [
 ];
 
 
-const findAll = async (patientId, doctorId) => {
+const findAll = async (/* patientId, doctorId */) => {
   const query = getKnex()(tables.appointment)
     .join(
       tables.doctor,
@@ -61,14 +61,6 @@ const findAll = async (patientId, doctorId) => {
 
   return appointments.map(formatAppointment);
 };
-
-// const findCount = async (/* patientId,  */doctorId) => {
-//   const [count] = await getKnex()(tables.appointment)
-//     .count()
-//     // .where(`${tables.appointment}.patient_id`, patientId)
-//     .where(`${tables.appointment}.doctor_id`, doctorId);
-//   return count["count(*)"];
-// };
 
 const findById = async (id /*, patientId, doctorId */) => {
   const appointment = await getKnex()(tables.appointment)

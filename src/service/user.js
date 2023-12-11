@@ -32,11 +32,10 @@ const checkAndParseSession = async (authHeader) => {
 
   const authToken = authHeader.substring(7);
   try {
-    const { roles, userId, isDoctor } = await verifyJWT(authToken);
+    const { roles, userId } = await verifyJWT(authToken);
 
     return {
       userId,
-      isDoctor,
       roles,
       authToken,
     };

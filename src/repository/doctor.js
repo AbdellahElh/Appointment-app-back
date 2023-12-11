@@ -62,14 +62,14 @@ const create = async ({
   timeSlots,
 }) => {
   try {
-    const [userId] = await getKnex()(tables.user).insert({
+    const [userId] = await getKnex()(tables.user).returning('id').insert({
       email,
       password_hash: passwordHash,
       roles: JSON.stringify(roles),
-    });
+    });    
 
     await getKnex()(tables.doctor).insert({
-      id: userId, // Use the user's id as the doctor's id
+      id: userId, 
       name,
       speciality,
       numberOfPatients,
@@ -79,6 +79,33 @@ const create = async ({
       rating,
       about,
       timeSlots: JSON.stringify(timeSlots),
+    });
+
+    return userId;
+  } catch (error) {
+    getLogger().error("Error in create", {
+      error,
+    });
+    throw error;
+  }
+};
+
+const register = async ({
+  email,
+  passwordHash,
+  roles,
+  name,
+}) => {
+  try {
+    const [userId] = await getKnex()(tables.user).returning('id').insert({
+      email,
+      password_hash: passwordHash,
+      roles: JSON.stringify(roles),
+    });    
+
+    await getKnex()(tables.doctor).insert({
+      id: userId, 
+      name,
     });
 
     return userId;
@@ -161,6 +188,7 @@ module.exports = {
   findById,
   findByEmail,
   create,
+  register,
   updateById,
   deleteById,
 };

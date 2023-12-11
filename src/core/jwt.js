@@ -13,7 +13,7 @@ const generateJWT = (user) => {
   };
 
   const signOptions = {
-    expiresIn: Math.floor(JWT_EXPIRATION_INTERVAL / 1000),
+    expiresIn: Math.floor(JWT_EXPIRATION_INTERVAL / 500),
     audience: JWT_AUDIENCE,
     issuer: JWT_ISSUER,
     subject: 'auth',
@@ -39,7 +39,7 @@ const verifyJWT = (authToken) => {
 
   return new Promise((resolve, reject) => {
     jwt.verify(authToken, JWT_SECRET, verifyOptions, (err, decodedToken) => {
-      console.log('Decoded token:', decodedToken); // Add this line
+      console.log('Decoded token:', decodedToken); // for debugging
       if (err || !decodedToken) {
         console.log('Error while verifying token:', err.message);
         return reject(err || new Error('Token could not be parsed'));

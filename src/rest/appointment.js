@@ -10,56 +10,23 @@ const checkAppointmentId = async (ctx, next) => {
   const { userId, roles } = ctx.state.session;
   const { id } = ctx.params;
 
-  // Admins can access any user's information
+  // Fetch the appointment data
+  const appointment = await appointmentService.getById(id);
+
   if (roles.includes(Role.ADMIN)) {
     return next();
   }
-
-  // users can only access their own data
-  if (id !== userId) {
-    return ctx.throw(
-      403,
-      "You are not allowed to view this patient's information",
-      {
-        code: "FORBIDDEN",
-      }
-    );
+  if (roles.includes(Role.DOCTOR) && appointment.doctor.id === userId) {
+    return next();
+  }
+  if (roles.includes(Role.PATIENT) && appointment.patient.id === userId) {
+    return next();
   }
 
-  return next();
+  return ctx.throw(403, "You are not allowed to view this appointment", {
+    code: "FORBIDDEN",
+  });
 };
-
-// const checkAppointmentId = async (ctx, next) => {
-//   const { userId, roles, isDoctor } = ctx.state.session;
-//   const { id } = ctx.params;
-
-//   // Fetch the appointment data
-//   const appointment = await getAppointmentById(id); // Assuming you have a function to get the appointment by id
-
-//   // Admins can access any user's information
-//   if (roles.includes(Role.ADMIN)) {
-//     return next();
-//   }
-
-//   // Doctors can access their own appointments
-//   if (isDoctor && appointment.doctor.id === userId) {
-//     return next();
-//   }
-
-//   // Patients can access their own appointments
-//   if (!isDoctor && appointment.patient.id === userId) {
-//     return next();
-//   }
-
-//   return ctx.throw(
-//     403,
-//     "You are not allowed to view this appointment",
-//     {
-//       code: "FORBIDDEN",
-//     }
-//   );
-// };
-
 
 const getAllAppointments = async (ctx) => {
   // const { patientId, doctorId } = ctx.state.session;
@@ -74,11 +41,11 @@ const createAppointment = async (ctx) => {
     date: new Date(ctx.request.body.date),
     condition: ctx.request.body.condition,
     description: ctx.request.body.description,
-    numberOfBeds: Number(ctx.request.body.numberOfBeds),
-    // patientId: Number(ctx.request.body.patientId),
-    // doctorId: Number(ctx.request.body.doctorId),
-    patientId: ctx.state.session.patientId,
-    doctorId: ctx.state.session.doctorId,
+    numberOfBeds: ctx.request.body.numberOfBeds,
+    patientId: ctx.request.body.patientId,
+    doctorId: ctx.request.body.doctorId,
+    // patientId: ctx.state.session.patientId,
+    // doctorId: ctx.state.session.doctorId,
   });
 
   ctx.status = 201;
@@ -112,16 +79,16 @@ getAppointmentById.validationScheme = {
 };
 
 const updateAppointment = async (ctx) => {
-  ctx.body = await appointmentService.updateById(Number(ctx.params.id), {
+  ctx.body = await appointmentService.updateById(ctx.params.id, {
     ...ctx.request.body,
     date: new Date(ctx.request.body.date),
-    numberOfBeds: Number(ctx.request.body.numberOfBeds),
+    numberOfBeds: ctx.request.body.numberOfBeds,
     condition: ctx.request.body.condition,
     description: ctx.request.body.description,
-    // patientId: Number(ctx.request.body.patientId),
-    // doctorId: Number(ctx.request.body.doctorId),
-    patientId: ctx.state.session.patientId,
-    doctorId: ctx.state.session.doctorId,
+    patientId: ctx.request.body.patientId,
+    doctorId: ctx.request.body.doctorId,
+    // patientId: ctx.state.session.patientId,
+    // doctorId: ctx.state.session.doctorId,
   });
 };
 
@@ -173,6 +140,12 @@ module.exports = function installAppointmentsRoutes(app) {
     validate(getAppointmentById.validationScheme),
     checkAppointmentId,
     getAppointmentById
+  );
+  router.post(
+    "/",
+    validate(createAppointment.validationScheme),
+    checkAppointmentId,
+    createAppointment
   );
   router.put(
     "/:id",

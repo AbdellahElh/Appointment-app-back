@@ -6,14 +6,17 @@ module.exports = {
       table.integer("id").unsigned().notNullable().primary();
 
       table.string("name", 255).notNullable();
-      table.string("speciality", 255).notNullable();
-      table.integer("numberOfPatients").unsigned().notNullable();
-      table.string("photo", 255);
+      table
+        .string("speciality", 255)
+        .notNullable()
+        .defaultTo("Default Speciality");
+      table.integer("numberOfPatients").unsigned().defaultTo(0);
+      table.string("photo", 255).defaultTo("https://i.imgur.com/2WZtVXx.png");
 
-      table.string("hospital", 255);
-      table.integer("numberOfRatings").unsigned();
-      table.string("rating", 255);
-      table.text("about");
+      table.string("hospital", 255).defaultTo("Default Hospital");
+      table.integer("numberOfRatings").unsigned().defaultTo(0);
+      table.string("rating", 255).defaultTo(0);
+      table.text("about").defaultTo("Default About");
       table.json("timeSlots");
 
       table

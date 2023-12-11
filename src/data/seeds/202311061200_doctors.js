@@ -5,7 +5,7 @@ module.exports = {
     await knex(tables.doctor).delete();
     await knex(tables.doctor).insert([
       {
-        id: 1,
+        id: 5,
         name: "Dr. Olivia Anderson",
         speciality: "Cardiologist",
         numberOfPatients: 3,
@@ -24,7 +24,7 @@ module.exports = {
         ]),
       },
       {
-        id: 2,
+        id: 6,
         name: "Dr. Michael Brown Smith",
         speciality: "Dentist",
         numberOfPatients: 2,
@@ -43,7 +43,7 @@ module.exports = {
         ]),
       },
       {
-        id: 3,
+        id: 7,
         name: "Dr. John Davis Wilson",
         speciality: "Orthopedic Surgeon",
         numberOfPatients: 1,

@@ -48,7 +48,7 @@ const getAllDoctors = async (ctx) => {
 getAllDoctors.validationScheme = null;
 
 const register = async (ctx) => {
-  const token = await userService.register(ctx.request.body);
+  const token = await doctorService.register(ctx.request.body);
   ctx.body = token;
   ctx.status = 200;
 };
@@ -58,19 +58,19 @@ register.validationScheme = {
     email: Joi.string().email(),
     password: Joi.string().min(8).max(30),
 
-    speciality: Joi.string(),
-    numberOfPatients: Joi.number().integer().positive(),
-    photo: Joi.string(),
-    hospital: Joi.string(),
-    numberOfRatings: Joi.number().integer().positive(),
-    rating: Joi.number().positive(),
-    about: Joi.string(),
-    timeSlots: Joi.array().items(
-      Joi.object({
-        day: Joi.string(),
-        time: Joi.string(),
-      })
-    ),
+    // speciality: Joi.string(),
+    // numberOfPatients: Joi.number().integer().positive(),
+    // photo: Joi.string(),
+    // hospital: Joi.string(),
+    // numberOfRatings: Joi.number().integer().positive(),
+    // rating: Joi.number().positive(),
+    // about: Joi.string(),
+    // timeSlots: Joi.array().items(
+    //   Joi.object({
+    //     day: Joi.string(),
+    //     time: Joi.string(),
+    //   })
+    // ),
   },
 };
 

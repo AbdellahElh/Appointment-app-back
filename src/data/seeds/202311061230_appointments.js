@@ -8,7 +8,7 @@ module.exports = {
       {
         id: 1,
         patient_id: 1,
-        doctor_id: 1,
+        doctor_id: 5,
         description: "Annual Health Checkup",
         numberOfBeds: 3,
         condition: "Chest pain and shortness of breath",
@@ -17,7 +17,7 @@ module.exports = {
       {
         id: 2,
         patient_id: 2,
-        doctor_id: 2,
+        doctor_id: 6,
         description: "Dental Cleaning",
         numberOfBeds: 2,
         condition: "Toothache and cavity",
@@ -26,17 +26,17 @@ module.exports = {
       {
         id: 3,
         patient_id: 3,
-        doctor_id: 3,
+        doctor_id: 7,
         description: "Orthopedic Consultation",
         numberOfBeds: 1,
         condition: "Knee pain and difficulty walking",
         date: new Date(2023, 9, 30, 12, 45),
       },
-      
+
       {
         id: 4,
         patient_id: 1,
-        doctor_id: 2,
+        doctor_id: 5,
         description: "Eye Exam",
         numberOfBeds: 1,
         condition: "Blurred vision and eye irritation",
@@ -45,7 +45,7 @@ module.exports = {
       {
         id: 5,
         patient_id: 2,
-        doctor_id: 3,
+        doctor_id: 6,
         description: "Allergy Consultation",
         numberOfBeds: 2,
         condition: "Persistent sneezing and itching",
@@ -54,7 +54,7 @@ module.exports = {
       {
         id: 6,
         patient_id: 3,
-        doctor_id: 1,
+        doctor_id: 7,
         description: "Gastroenterology Checkup",
         numberOfBeds: 3,
         condition: "Abdominal pain and indigestion",
@@ -63,7 +63,7 @@ module.exports = {
       {
         id: 7,
         patient_id: 1,
-        doctor_id: 3,
+        doctor_id: 5,
         description: "Cardiology Follow-up",
         numberOfBeds: 1,
         condition: "High blood pressure and palpitations",
@@ -72,7 +72,7 @@ module.exports = {
       {
         id: 8,
         patient_id: 2,
-        doctor_id: 1,
+        doctor_id: 6,
         description: "Pulmonology Evaluation",
         numberOfBeds: 2,
         condition: "Persistent cough and shortness of breath",
@@ -81,7 +81,7 @@ module.exports = {
       {
         id: 9,
         patient_id: 3,
-        doctor_id: 2,
+        doctor_id: 7,
         description: "Neurology Consultation",
         numberOfBeds: 3,
         condition: "Headaches and dizziness",

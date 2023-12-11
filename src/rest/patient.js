@@ -1,11 +1,11 @@
-const Router = require('@koa/router');
-const Joi = require('joi');
+const Router = require("@koa/router");
+const Joi = require("joi");
 
-const patientService = require('../service/patient');
-const userService = require('../service/user');
-const validate = require('../core/validation');
-const { requireAuthentication, makeRequireRole } = require('../core/auth');
-const Role = require('../core/roles');
+const patientService = require("../service/patient");
+const userService = require("../service/user");
+const validate = require("../core/validation");
+const { requireAuthentication, makeRequireRole } = require("../core/auth");
+const Role = require("../core/roles");
 
 const checkPatientId = (ctx, next) => {
   const { userId, roles } = ctx.state.session;
@@ -22,7 +22,7 @@ const checkPatientId = (ctx, next) => {
       403,
       "You are not allowed to view this patient's information",
       {
-        code: 'FORBIDDEN',
+        code: "FORBIDDEN",
       }
     );
   }
@@ -49,8 +49,8 @@ login.validationScheme = {
 const getAllPatients = async (ctx) => {
   const { roles, patientId, doctorId } = ctx.state.session;
 
-  console.log('User roles:', roles);
-  console.log('Doctor ID:', doctorId);
+  console.log("User roles:", roles);
+  console.log("Doctor ID:", doctorId);
 
   if (roles.includes(Role.DOCTOR)) {
     // Include a check for the doctor's ID
@@ -64,7 +64,7 @@ const getAllPatients = async (ctx) => {
 getAllPatients.validationScheme = null;
 
 const register = async (ctx) => {
-  const token = await userService.register(ctx.request.body);
+  const token = await patientService.register(ctx.request.body);
   ctx.body = token;
   ctx.status = 200;
 };
@@ -73,11 +73,6 @@ register.validationScheme = {
     name: Joi.string().max(255),
     email: Joi.string().email(),
     password: Joi.string().min(8).max(30),
-    street: Joi.string(),
-    number: Joi.string(),
-    postalCode: Joi.string(),
-    city: Joi.string(),
-    birthdate: Joi.date().iso(),
   },
 };
 
@@ -91,11 +86,29 @@ getPatientById.validationScheme = {
   }),
 };
 
+const createPatient = async (ctx) => {
+  const createdPatient = await patientService.create(ctx.request.body);
+  ctx.body = createdPatient;
+  ctx.status = 200;
+};
+
+createPatient.validationScheme = {
+  body: Joi.object({
+    name: Joi.string(),
+    street: Joi.string(),
+    number: Joi.string(),
+    postalCode: Joi.string(),
+    city: Joi.string(),
+    birthdate: Joi.date().iso(),
+  }),
+};
+
+
 const updatePatientById = async (ctx) => {
   const updatedPatient = await patientService.updateById(ctx.params.id, {
     ...ctx.request.body,
   });
-  ctx.body = updatedPatient; // Include the updated patient information
+  ctx.body = updatedPatient;
 };
 
 updatePatientById.validationScheme = {
@@ -126,39 +139,46 @@ deletePatientById.validationScheme = {
 
 module.exports = function installPatientsRoutes(app) {
   const router = new Router({
-    prefix: '/patients',
+    prefix: "/patients",
   });
 
   // Public routes
-  router.post('/login', validate(login.validationScheme), login);
-  router.post('/register', validate(register.validationScheme), register);
+  router.post("/login", validate(login.validationScheme), login);
+  router.post("/register", validate(register.validationScheme), register);
 
   const requireAdmin = makeRequireRole(Role.ADMIN);
 
   // Routes with authentication/authorization
   router.get(
-    '/',
+    "/",
     requireAuthentication,
     validate(getAllPatients.validationScheme),
     checkPatientId,
     getAllPatients
   );
   router.get(
-    '/:id',
+    "/:id",
     requireAuthentication,
     validate(getPatientById.validationScheme),
     checkPatientId,
     getPatientById
   );
+  router.post(
+    "/",
+    requireAuthentication,
+    // requireAdmin,
+    validate(createPatient.validationScheme),
+    createPatient
+  )
   router.put(
-    '/:id',
+    "/:id",
     requireAuthentication,
     validate(updatePatientById.validationScheme),
     checkPatientId,
     updatePatientById
   );
   router.delete(
-    '/:id',
+    "/:id",
     requireAuthentication,
     validate(deletePatientById.validationScheme),
     checkPatientId,

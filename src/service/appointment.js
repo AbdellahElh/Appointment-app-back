@@ -7,21 +7,19 @@ const handleDBError = require("./_handleDBError");
 
 const getAll = async (patientId, doctorId) => {
   const items = await appointmentRepo.findAll(patientId, doctorId);
-  // const count = await appointmentRepo.count( patientId, */ doctorId);
   return {
     items,
-    // count,
     count: items.length,
   };
 };
 
-const getById = async (id, /* patientId, */ /* doctorId */) => {
+const getById = async (id /* patientId, */ /* doctorId */) => {
   const appointment = await appointmentRepo.findById(
-    id, /* patientId, */ /* doctorId */
+    id /* patientId, */ /* doctorId */
   );
 
   if (
-    !appointment 
+    !appointment
     // || appointment.patient.id !== patientId ||
     // appointment.doctor.id !== doctorId
   ) {
@@ -83,16 +81,22 @@ const updateById = async (
   }
   try {
     await appointmentRepo.updateById(id, {
+      patientId,
+      doctorId,
       date,
       description,
       numberOfBeds,
       condition,
-      patientId,
-      doctorId,
     });
-    console.log("Updating appointment. ID:", id, "Patient ID:", patientId, "Doctor ID:", doctorId);
+    console.log(
+      "Updating appointment. ID:",
+      id,
+      "Patient ID:",
+      patientId,
+      "Doctor ID:",
+      doctorId
+    );
     return getById(id, patientId, doctorId);
-
   } catch (error) {
     throw handleDBError(error);
   }
@@ -100,10 +104,7 @@ const updateById = async (
 
 const deleteById = async (id, patientId, doctorId) => {
   try {
-    const deleted = await appointmentRepo.deleteById(
-      id,
-      patientId, doctorId
-    );
+    const deleted = await appointmentRepo.deleteById(id, patientId, doctorId);
 
     if (!deleted) {
       throw ServiceError.notFound(`No appointment with id ${id} exists`, {

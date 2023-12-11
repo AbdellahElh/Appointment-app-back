@@ -6,11 +6,11 @@ module.exports = {
       table.integer("id").unsigned().notNullable().primary();
 
       table.string("name", 255).notNullable();
-      table.string("street", 255).notNullable();
-      table.string("number", 255).notNullable();
-      table.string("postalCode", 255).notNullable();
-      table.string("city", 255).notNullable();
-      table.timestamp("birthdate").notNullable();
+      table.string("street", 255).notNullable().defaultTo("Default Street");
+      table.string("number", 255).notNullable().defaultTo("Default Number");
+      table.string("postalCode", 255).notNullable().defaultTo("Default postalcode");
+      table.string("city", 255).notNullable().defaultTo("Default City");
+      table.timestamp("birthdate").notNullable().defaultTo(knex.fn.now());
 
       table
         .foreign("id", "fk_patient_user")
