@@ -1,13 +1,13 @@
 const { getLogger } = require("../core/logging");
 const { tables, getKnex } = require("../data/index");
 
-const formatPatient = ({ patientId, email, roles, ...patient }) => {
+const formatPatient = ({ patientId, patientEmail, patientRoles, ...patient }) => {
   return {
     ...patient,
     user: {
       id: patientId,
-      email,
-      roles,
+      email: patientEmail,
+      roles: patientRoles,
     },
   };
 };
@@ -99,6 +99,7 @@ const updateById = async (
   }
 ) => {
   try {
+    // Update user table
     await getKnex()(tables.user)
       .update({
         id,
@@ -108,6 +109,7 @@ const updateById = async (
       })
       .where("id", id);
 
+    // Update patient table
     await getKnex()(tables.patient)
       .update({
         name,
@@ -119,7 +121,9 @@ const updateById = async (
       })
       .where("id", id);
 
-    return id;
+    // Fetch and return the updated patient information
+    const updatedPatient = await findById(id);
+    return updatedPatient;
   } catch (error) {
     getLogger().error("Error in updateById", {
       error,

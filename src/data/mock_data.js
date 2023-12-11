@@ -6,7 +6,7 @@
 //     number: "Apt 3C",
 //     postalCode: "54321",
 //     city: "Metropolitan City",
-//     birthdate: new Date(2001, 10, 15),
+//     birthdate: new Date(2001, 10, 15), 
 //   },
 //   {
 //     id: 2,
@@ -91,9 +91,6 @@
 //     timeSlots: [
 //       { day: "Monday", time: "8:00 - 16:00" },
 //       { day: "Tuesday", time: "14:30 - 18:30" },
-//       { day: "Wednesday", time: "10:00 - 18:00" },
-//       { day: "Thursday", time: "9:30 - 13:00" },
-//       { day: "Friday", time: "13:30 - 18:00" },
 //     ],
 //   },
 //   {
@@ -110,7 +107,6 @@
 //     timeSlots: [
 //       { day: "Saturday", time: "9:00 - 17:00" },
 //       { day: "Sunday", time: "14:00 - 17:30" },
-//       { day: "Monday", time: "14:00 - 18:30" },
 //       { day: "Tuesday", time: "9:30 - 12:00" },
 //       { day: "Wednesday", time: "13:30 - 17:30" },
 //     ],
@@ -131,7 +127,6 @@
 //       { day: "Tuesday", time: "8:30 - 16:30" },
 //       { day: "Wednesday", time: "14:00 - 17:30" },
 //       { day: "Thursday", time: "11:30 - 15:00" },
-//       { day: "Friday", time: "16:00 - 20:00" },
 //     ],
 //   },
 // ];

@@ -1,4 +1,5 @@
 const Router = require("@koa/router");
+
 const installAppointmentRouter = require("./appointment");
 const installHealthRouter = require("./health");
 const installPatientRouter = require("./patient");

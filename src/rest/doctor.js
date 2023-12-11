@@ -1,6 +1,8 @@
 const Router = require("@koa/router");
 const Joi = require("joi");
+
 const doctorService = require("../service/doctor");
+const userService = require("../service/user");
 const validate = require("../core/validation");
 const { requireAuthentication, makeRequireRole } = require("../core/auth");
 const Role = require("../core/roles");
@@ -9,12 +11,13 @@ const checkDoctorId = (ctx, next) => {
   const { userId, roles } = ctx.state.session;
   const { id } = ctx.params;
 
-  // You can only get our own data unless you're an admin
-  if (
-    id !== userId &&
-    !roles.includes(Role.DOCTOR) &&
-    !roles.includes(Role.ADMIN)
-  ) {
+  // Admins can access any user's information
+  if (roles.includes(Role.ADMIN)) {
+    return next();
+  }
+
+  // users can only access their own data
+  if (id !== userId) {
     return ctx.throw(
       403,
       "You are not allowed to view this doctor's information",
@@ -23,12 +26,13 @@ const checkDoctorId = (ctx, next) => {
       }
     );
   }
+
   return next();
 };
 
 const login = async (ctx) => {
   const { email, password } = ctx.request.body;
-  const token = await doctorService.login(email, password);
+  const token = await userService.login(email, password);
   ctx.body = token;
 };
 login.validationScheme = {
@@ -44,7 +48,7 @@ const getAllDoctors = async (ctx) => {
 getAllDoctors.validationScheme = null;
 
 const register = async (ctx) => {
-  const token = await doctorService.register(ctx.request.body);
+  const token = await userService.register(ctx.request.body);
   ctx.body = token;
   ctx.status = 200;
 };
@@ -70,18 +74,22 @@ register.validationScheme = {
   },
 };
 
-const getDoctorsById = async (ctx) => {
+const getDoctorById = async (ctx) => {
   ctx.body = await doctorService.getById(ctx.params.id);
 };
-getDoctorsById.validationScheme = {
+
+getDoctorById.validationScheme = {
   params: Joi.object({
     id: Joi.number().integer().positive().required(),
   }),
 };
 
 const updateDoctorById = async (ctx) => {
-  ctx.body = await doctorService.updateById(ctx.params.id, ctx.request.body);
+  ctx.body = await doctorService.updateById(ctx.params.id, {
+    ...ctx.request.body,
+  });
 };
+
 updateDoctorById.validationScheme = {
   params: Joi.object({
     id: Joi.number().integer().positive(),
@@ -115,22 +123,6 @@ deleteDoctorById.validationScheme = {
   }),
 };
 
-// module.exports = (app) => {
-//   const router = new Router({
-//     prefix: "/doctors",
-//   });
-
-//   router.get("/", validate(getAllDoctors.validationScheme), getAllDoctors);
-//   router.post("/", validate(createDoctor.validationScheme), createDoctor);
-//   router.post("/register", validate(register.validationScheme), register);
-//   router.post("/login", validate(login.validationScheme), login);
-//   router.get("/:id", validate(getDoctorsById.validationScheme), getDoctorsById);
-//   router.put("/:id", validate(updateDoctorById.validationScheme), updateDoctorById);
-//   router.delete("/:id", validate(deleteDoctorById.validationScheme), deleteDoctorById);
-
-//   app.use(router.routes()).use(router.allowedMethods());
-// };
-
 module.exports = function installDoctorsRoutes(app) {
   const router = new Router({
     prefix: "/doctors",
@@ -139,8 +131,6 @@ module.exports = function installDoctorsRoutes(app) {
   // Public routes
   router.post("/login", validate(login.validationScheme), login);
   router.post("/register", validate(register.validationScheme), register);
-  // router.get("/", validate(getAllDoctors.validationScheme), getAllDoctors);
-  router.get("/:id", validate(getDoctorsById.validationScheme), getDoctorsById);
 
   const requireAdmin = makeRequireRole(Role.ADMIN);
 
@@ -148,17 +138,16 @@ module.exports = function installDoctorsRoutes(app) {
   router.get(
     "/",
     requireAuthentication,
-    requireAdmin,
     validate(getAllDoctors.validationScheme),
-    // checkDoctorId,
+    checkDoctorId,
     getAllDoctors
   );
   router.get(
     "/:id",
     requireAuthentication,
-    validate(getDoctorsById.validationScheme),
+    validate(getDoctorById.validationScheme),
     checkDoctorId,
-    getDoctorsById
+    getDoctorById
   );
   router.put(
     "/:id",

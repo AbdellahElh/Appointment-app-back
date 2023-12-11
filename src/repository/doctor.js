@@ -1,13 +1,13 @@
 const { getLogger } = require("../core/logging");
 const { tables, getKnex } = require("../data/index");
 
-const formatDoctor = ({ doctorId, email, roles, ...doctor }) => {
+const formatDoctor = ({ doctorId, doctorEmail, patientRoles, ...doctor }) => {
   return {
     ...doctor,
     user: {
       id: doctorId,
-      email,
-      roles,
+      email: doctorEmail,
+      roles: patientRoles,
     },
   };
 };

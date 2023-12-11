@@ -111,7 +111,7 @@ describe("Appointments", () => {
     });
 
     it("should 200 and return all appointments", async () => {
-      const response = await request.get(url).set('Authorization', authHeader);;
+      const response = await request.get(url).set('Authorization', authHeader);
       expect(response.status).toBe(200);
       expect(response.body.items.length).toBe(3);
 

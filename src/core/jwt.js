@@ -39,6 +39,7 @@ const verifyJWT = (authToken) => {
 
   return new Promise((resolve, reject) => {
     jwt.verify(authToken, JWT_SECRET, verifyOptions, (err, decodedToken) => {
+      console.log('Decoded token:', decodedToken); // Add this line
       if (err || !decodedToken) {
         console.log('Error while verifying token:', err.message);
         return reject(err || new Error('Token could not be parsed'));

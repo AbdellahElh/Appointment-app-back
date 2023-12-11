@@ -27,35 +27,32 @@ const SELECT_COLUMNS = [
   "numberOfBeds",
   "condition",
   "date",
-  // `${tables.doctor}.id as doctor_id`,
-  `${tables.user}.id as doctor_id`,
+  `${tables.doctor}.id as doctor_id`,
   `${tables.doctor}.name as doctor_name`,
-  // `${tables.patient}.id as patient_id`,
-  `${tables.user}.id as patient_id`,
+  `${tables.patient}.id as patient_id`,
   `${tables.patient}.name as patient_name`,
 ];
 
-const findAll = async (/* {patientId,} */ doctorId) => {
+
+const findAll = async (patientId, doctorId) => {
   const query = getKnex()(tables.appointment)
     .join(
-      // tables.doctor,
-      tables.user,
+      tables.doctor,
       `${tables.appointment}.doctor_id`,
       "=",
-      // `${tables.doctor}.id`
-      `${tables.user}.id`
+      `${tables.doctor}.id`
+      // `${tables.user}.id`
     )
     .join(
-      // tables.patient,
-      tables.user,
+      tables.patient,
       `${tables.appointment}.patient_id`,
       "=",
-      // `${tables.patient}.id`
-      `${tables.user}.id`
+      `${tables.patient}.id`
+      // `${tables.user}.id`
     )
     .select(SELECT_COLUMNS)
     // .where(`${tables.appointment}.patient_id`, patientId)
-    .where(`${tables.appointment}.doctor_id`, doctorId)
+    // .where(`${tables.appointment}.doctor_id`, doctorId)
     .orderBy("date", "ASC");
 
   console.log(query.toSQL().toNative());
@@ -65,13 +62,13 @@ const findAll = async (/* {patientId,} */ doctorId) => {
   return appointments.map(formatAppointment);
 };
 
-const findCount = async (/* patientId,  */doctorId) => {
-  const [count] = await getKnex()(tables.appointment)
-    .count()
-    // .where(`${tables.appointment}.patient_id`, patientId)
-    .where(`${tables.appointment}.doctor_id`, doctorId);
-  return count["count(*)"];
-};
+// const findCount = async (/* patientId,  */doctorId) => {
+//   const [count] = await getKnex()(tables.appointment)
+//     .count()
+//     // .where(`${tables.appointment}.patient_id`, patientId)
+//     .where(`${tables.appointment}.doctor_id`, doctorId);
+//   return count["count(*)"];
+// };
 
 const findById = async (id /*, patientId, doctorId */) => {
   const appointment = await getKnex()(tables.appointment)
@@ -145,12 +142,12 @@ const updateById = async (
   }
 };
 
-const deleteById = async (id, doctorId /*, patientId  */) => {
+const deleteById = async (id, /* doctorId */ /*, patientId  */) => {
   try {
     const rowsAffected = await getKnex()(tables.appointment)
       .where(`${tables.appointment}.id`, id)
       // .where(`${tables.appointment}.patient_id`, patientId)
-      .where(`${tables.appointment}.doctor_id`, doctorId)
+      // .where(`${tables.appointment}.doctor_id`, doctorId)
       .delete();
 
     return rowsAffected > 0;
@@ -164,7 +161,7 @@ const deleteById = async (id, doctorId /*, patientId  */) => {
 
 module.exports = {
   findAll,
-  findCount,
+  // findCount,
   findById,
   create,
   updateById,

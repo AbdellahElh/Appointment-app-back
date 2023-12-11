@@ -1,11 +1,13 @@
-const config = require("config");
-const patientRepository = require("../repository/patient");
-const ServiceError = require("../core/serviceError");
-const { hashPassword, verifyPassword } = require("../core/password");
-const { generateJWT, verifyJWT } = require("../core/jwt");
-const Role = require("../core/roles");
-const { getLogger } = require("../core/logging");
-const handleDBError = require("./_handleDBError");
+const config = require('config');
+
+const patientRepository = require('../repository/patient');
+const ServiceError = require('../core/serviceError');
+const { hashPassword, verifyPassword } = require('../core/password');
+const { generateJWT, verifyJWT } = require('../core/jwt');
+const Role = require('../core/roles');
+const { getLogger } = require('../core/logging');
+
+const handleDBError = require('./_handleDBError');
 
 const makeExposedPatient = ({
   id,
@@ -39,19 +41,19 @@ const makeLoginData = async (patient) => {
 
 const checkAndParseSession = async (authHeader) => {
   if (!authHeader) {
-    throw ServiceError.unauthorized("You need to be signed in");
+    throw ServiceError.unauthorized('You need to be signed in');
   }
 
-  if (!authHeader.startsWith("Bearer ")) {
-    throw ServiceError.unauthorized("Invalid authentication token");
+  if (!authHeader.startsWith('Bearer ')) {
+    throw ServiceError.unauthorized('Invalid authentication token');
   }
 
   const authToken = authHeader.substring(7);
   try {
-    const { roles, patientId } = await verifyJWT(authToken);
+    const { roles, userId } = await verifyJWT(authToken);
 
     return {
-      patientId,
+      patientId: userId,
       roles,
       authToken,
     };
@@ -66,7 +68,7 @@ const checkRole = (role, roles) => {
 
   if (!hasPermission) {
     throw ServiceError.forbidden(
-      "You are not allowed to view this part of the application"
+      'You are not allowed to view this part of the application'
     );
   }
 };
@@ -75,8 +77,9 @@ const login = async (email, password) => {
   const patient = await patientRepository.findByEmail(email);
 
   if (!patient) {
+    getLogger().error('User roles:', roles);
     throw ServiceError.unauthorized(
-      "The given email and password do not match"
+      'The given email and password do not match'
     );
   }
 
@@ -84,7 +87,7 @@ const login = async (email, password) => {
 
   if (!passwordValid) {
     throw ServiceError.unauthorized(
-      "The given email and password do not match"
+      'The given email and password do not match'
     );
   }
 
@@ -97,6 +100,35 @@ const getAll = async () => {
     items: items.map(makeExposedPatient),
     count: items.length,
   };
+};
+
+const getPatientsByDoctor = async (doctorId) => {
+  try {
+    const appointmentService = require('./appointment');
+    const appointments = await appointmentService.getAll(null, doctorId);
+    const uniquePatients = new Map();
+
+    // Extract patient IDs from appointments, filtering out duplicates
+    const patientIds = Array.from(
+      new Set(appointments.items.map((appointment) => appointment.patient.id))
+    );
+
+    // Retrieve full patient details for each ID
+    for (const patientId of patientIds) {
+      console.log('Fetching patient with ID:', patientId);
+      const patient = await patientRepository.findById(patientId);
+      console.log('Fetched patient:', patient);
+      if (patient) {
+        uniquePatients.set(patient.id, patient);
+      }
+    }
+
+    const patients = Array.from(uniquePatients.values());
+
+    return patients.sort((a, b) => a.id - b.id);
+  } catch (error) {
+    console.error(error);
+  }
 };
 
 const getById = async (id) => {
@@ -134,6 +166,8 @@ const register = async ({
       birthdate,
     });
     const patient = await patientRepository.findById(patientId);
+    console.log('User created:', patient);
+
     return await makeLoginData(patient);
   } catch (error) {
     throw handleDBError(error);
@@ -154,7 +188,7 @@ const updateById = async (
       city,
       birthdate,
     });
-    return getById(id);
+    return getById(id); // This should now return the updated email
   } catch (error) {
     throw handleDBError(error);
   }
@@ -177,8 +211,8 @@ module.exports = {
   checkRole,
   login,
   getAll,
+  getPatientsByDoctor,
   getById,
-  // create,
   register,
   updateById,
   deleteById,

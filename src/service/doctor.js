@@ -1,10 +1,12 @@
 const config = require("config");
+
 const doctorRepository = require("../repository/doctor");
 const ServiceError = require("../core/serviceError");
 const { hashPassword, verifyPassword } = require("../core/password");
 const { generateJWT, verifyJWT } = require("../core/jwt");
 const Role = require("../core/roles");
 const { getLogger } = require("../core/logging");
+
 const handleDBError = require("./_handleDBError");
 
 const makeExposedDoctor = ({
@@ -54,10 +56,10 @@ const checkAndParseSession = async (authHeader) => {
 
   const authToken = authHeader.substring(7);
   try {
-    const { roles, patientId } = await verifyJWT(authToken);
+    const { roles, doctorId } = await verifyJWT(authToken);
 
     return {
-      patientId,
+      doctorId,
       roles,
       authToken,
     };

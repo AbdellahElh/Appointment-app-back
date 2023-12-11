@@ -1,4 +1,5 @@
 const config = require('config'); // 👈 2
+
 const { initializeLogger } = require('../src/core/logging'); // 👈 2
 const Role = require('../src/core/roles'); // 👈 4
 const { initializeData, getKnex, tables } = require('../src/data'); // 👈 3 en 4

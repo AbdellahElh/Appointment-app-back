@@ -1,26 +1,29 @@
 const appointmentRepo = require("../repository/appointment");
+const ServiceError = require("../core/serviceError");
+
 const patientService = require("./patient");
 const doctorService = require("./doctor");
-const ServiceError = require("../core/serviceError");
 const handleDBError = require("./_handleDBError");
 
-const getAll = async (/* patientId, */ doctorId) => {
-  const items = await appointmentRepo.findAll(/* patientId, */ doctorId);
-  const count = await appointmentRepo.count(/* patientId, */ doctorId);
+const getAll = async (patientId, doctorId) => {
+  const items = await appointmentRepo.findAll(patientId, doctorId);
+  // const count = await appointmentRepo.count( patientId, */ doctorId);
   return {
     items,
-    count,
-    // count: items.length,
+    // count,
+    count: items.length,
   };
 };
 
-const getById = async (id, /* patientId, */ doctorId) => {
-  const appointment = await appointmentRepo.findById(id, /* patientId, */ doctorId);
+const getById = async (id, /* patientId, */ /* doctorId */) => {
+  const appointment = await appointmentRepo.findById(
+    id, /* patientId, */ /* doctorId */
+  );
 
   if (
-    !appointment ||
-    // appointment.patient.id !== patientId ||
-    appointment.doctor.id !== doctorId
+    !appointment 
+    // || appointment.patient.id !== patientId ||
+    // appointment.doctor.id !== doctorId
   ) {
     throw ServiceError.notFound(`No appointment with id ${id} exists`, { id });
   }
@@ -87,15 +90,20 @@ const updateById = async (
       patientId,
       doctorId,
     });
+    console.log("Updating appointment. ID:", id, "Patient ID:", patientId, "Doctor ID:", doctorId);
     return getById(id, patientId, doctorId);
+
   } catch (error) {
     throw handleDBError(error);
   }
 };
 
-const deleteById = async (id, /* patientId, */ doctorId) => {
+const deleteById = async (id, patientId, doctorId) => {
   try {
-    const deleted = await appointmentRepo.deleteById(id, /* patientId, */ doctorId);
+    const deleted = await appointmentRepo.deleteById(
+      id,
+      patientId, doctorId
+    );
 
     if (!deleted) {
       throw ServiceError.notFound(`No appointment with id ${id} exists`, {
