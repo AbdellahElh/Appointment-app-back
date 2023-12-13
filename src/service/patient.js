@@ -34,7 +34,7 @@ const makeExposedPatient = ({
 const makeLoginData = async (patient) => {
   const token = await generateJWT(patient);
   return {
-    patient: makeExposedPatient(patient),
+    user: makeExposedPatient(patient),
     token,
   };
 };
@@ -141,7 +141,14 @@ const getById = async (id) => {
   return makeExposedPatient(patient);
 };
 
-const create = async ({ name, street, number, postalCode, city, birthdate }) => {
+const create = async ({
+  name,
+  street,
+  number,
+  postalCode,
+  city,
+  birthdate,
+}) => {
   try {
     const id = await patientRepository.create({
       name,

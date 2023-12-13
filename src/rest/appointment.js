@@ -11,7 +11,7 @@ const checkAppointmentId = async (ctx, next) => {
   const { id } = ctx.params;
 
   // Fetch the appointment data
-  const appointment = await appointmentService.getById(id);
+  const appointment = await appointmentService.getById(userId);
 
   if (roles.includes(Role.ADMIN)) {
     return next();

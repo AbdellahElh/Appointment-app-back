@@ -40,7 +40,7 @@ const makeExposedDoctor = ({
 const makeLoginData = async (doctor) => {
   const token = await generateJWT(doctor);
   return {
-    doctor: makeExposedDoctor(doctor),
+    user: makeExposedDoctor(doctor),
     token,
   };
 };

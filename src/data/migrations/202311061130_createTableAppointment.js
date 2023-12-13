@@ -28,7 +28,6 @@ module.exports = {
   },
 
   down: async (knex) => {
-    // Drop the appointments table
     await knex.schema.dropTableIfExists(tables.appointment);
   },
 };
