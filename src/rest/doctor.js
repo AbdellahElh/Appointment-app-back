@@ -57,20 +57,6 @@ register.validationScheme = {
     name: Joi.string().max(255),
     email: Joi.string().email(),
     password: Joi.string().min(8).max(30),
-
-    // speciality: Joi.string(),
-    // numberOfPatients: Joi.number().integer().positive(),
-    // photo: Joi.string(),
-    // hospital: Joi.string(),
-    // numberOfRatings: Joi.number().integer().positive(),
-    // rating: Joi.number().positive(),
-    // about: Joi.string(),
-    // timeSlots: Joi.array().items(
-    //   Joi.object({
-    //     day: Joi.string(),
-    //     time: Joi.string(),
-    //   })
-    // ),
   },
 };
 
@@ -139,14 +125,14 @@ module.exports = function installDoctorsRoutes(app) {
     "/",
     requireAuthentication,
     validate(getAllDoctors.validationScheme),
-    checkDoctorId,
+    // checkDoctorId,
     getAllDoctors
   );
   router.get(
     "/:id",
     requireAuthentication,
     validate(getDoctorById.validationScheme),
-    checkDoctorId,
+    // checkDoctorId,
     getDoctorById
   );
   router.put(

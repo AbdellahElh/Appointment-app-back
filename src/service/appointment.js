@@ -5,25 +5,47 @@ const patientService = require("./patient");
 const doctorService = require("./doctor");
 const handleDBError = require("./_handleDBError");
 
-const getAll = async (patientId, doctorId) => {
-  const items = await appointmentRepo.findAll(patientId, doctorId);
+const getAll = async (userId) => {
+  const items = await appointmentRepo.findAll(userId);
   return {
     items,
     count: items.length,
   };
 };
 
-const getById = async (id /* patientId, */ /* doctorId */) => {
-  const appointment = await appointmentRepo.findById(
-    id /* patientId, */ /* doctorId */
-  );
+const getAllAppointments = async () => {
+  const items = await appointmentRepo.findAllAppointments();
+  return {
+    items,
+    count: items.length,
+  };
+};
 
-  if (
-    !appointment
-    // || appointment.patient.id !== patientId ||
-    // appointment.doctor.id !== doctorId
-  ) {
+const getAllDoctorAppointments = async (userId) => {
+  const items = await appointmentRepo.findAllDoctorAppointments(userId);
+  return {
+    items,
+    count: items.length,
+  };
+};
+
+const getById = async (id, userId, role) => {
+  const appointment = await appointmentRepo.findById(id);
+
+  if (!appointment) {
     throw ServiceError.notFound(`No appointment with id ${id} exists`, { id });
+  }
+
+  // Check if the user is allowed to view the appointment
+  if (
+    role !== "admin" &&
+    appointment.patient.id !== userId &&
+    appointment.doctor.id !== userId
+  ) {
+    throw ServiceError.forbidden(
+      `You are not allowed to view this appointment`,
+      { id }
+    );
   }
 
   return appointment;
@@ -64,7 +86,9 @@ const create = async ({
 
 const updateById = async (
   id,
-  { patientId, doctorId, date, description, numberOfBeds, condition }
+  { patientId, doctorId, date, description, numberOfBeds, condition },
+  role,
+  userId
 ) => {
   if (patientId) {
     const existingPatient = await patientService.getById(patientId);
@@ -79,8 +103,28 @@ const updateById = async (
       throw ServiceError.notFound(`There is no doctor with id ${id}.`, { id });
     }
   }
+
+  const appointment = await appointmentRepo.findById(id);
+  if (!appointment) {
+    throw ServiceError.notFound(`There is no appointment with id ${id}.`, {
+      id,
+    });
+  }
+
+  if (
+    role !== "admin" &&
+    role === "patient" &&
+    userId !== appointment.patientId &&
+    role === "doctor" &&
+    userId !== appointment.doctorId
+  ) {
+    throw ServiceError.unauthorized(
+      "You are not authorized to update this appointment."
+    );
+  }
+
   try {
-    await appointmentRepo.updateById(id, {
+    await appointmentRepo.findById(id, {
       patientId,
       doctorId,
       date,
@@ -118,6 +162,8 @@ const deleteById = async (id, patientId, doctorId) => {
 
 module.exports = {
   getAll,
+  getAllAppointments,
+  getAllDoctorAppointments,
   getById,
   create,
   updateById,

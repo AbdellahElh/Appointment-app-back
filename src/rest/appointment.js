@@ -6,34 +6,30 @@ const { requireAuthentication } = require("../core/auth");
 const Role = require("../core/roles");
 const appointmentService = require("../service/appointment");
 
-const checkAppointmentId = async (ctx, next) => {
-  const { userId, roles } = ctx.state.session;
-  const { id } = ctx.params;
-
-  // Fetch the appointment data
-  const appointment = await appointmentService.getById(userId);
-
-  if (roles.includes(Role.ADMIN)) {
-    return next();
-  }
-  if (roles.includes(Role.DOCTOR) && appointment.doctor.id === userId) {
-    return next();
-  }
-  if (roles.includes(Role.PATIENT) && appointment.patient.id === userId) {
-    return next();
-  }
-
-  return ctx.throw(403, "You are not allowed to view this appointment", {
-    code: "FORBIDDEN",
-  });
-};
-
 const getAllAppointments = async (ctx) => {
-  // const { patientId, doctorId } = ctx.state.session;
-  ctx.body = await appointmentService.getAll(/* patientId, doctorId */);
+  const { userId, roles } = ctx.state.session;
+
+  if (roles.includes(Role.PATIENT)) {
+    ctx.body = await appointmentService.getAll(userId);
+  } else if (roles.includes(Role.DOCTOR)) {
+    ctx.body = await appointmentService.getAllDoctorAppointments(userId);
+  } else {
+    ctx.body = await appointmentService.getAllAppointments();
+  }
 };
 
 getAllAppointments.validationScheme = null;
+
+const getAppointmentById = async (ctx) => {
+  const { userId, role } = ctx.state.session;
+  ctx.body = await appointmentService.getById(ctx.params.id, userId, role);
+};
+
+getAppointmentById.validationScheme = {
+  params: Joi.object({
+    id: Joi.number().integer().positive(),
+  }),
+};
 
 const createAppointment = async (ctx) => {
   const newAppointment = await appointmentService.create({
@@ -63,23 +59,9 @@ createAppointment.validationScheme = {
   }),
 };
 
-const getAppointmentById = async (ctx) => {
-  // const { /* patientId, */ doctorId } = ctx.state.session;
-  ctx.body = await appointmentService.getById(
-    ctx.params.id
-    /* patientId, */
-    // ctx.state.session.doctorId
-  );
-};
-
-getAppointmentById.validationScheme = {
-  params: Joi.object({
-    id: Joi.number().integer().positive(),
-  }),
-};
-
 const updateAppointment = async (ctx) => {
-  ctx.body = await appointmentService.updateById(ctx.params.id, {
+  const { userId, role } = ctx.state.session;
+  const updatedAppointment = {
     ...ctx.request.body,
     date: new Date(ctx.request.body.date),
     numberOfBeds: ctx.request.body.numberOfBeds,
@@ -89,7 +71,14 @@ const updateAppointment = async (ctx) => {
     doctorId: ctx.request.body.doctorId,
     // patientId: ctx.state.session.patientId,
     // doctorId: ctx.state.session.doctorId,
-  });
+  };
+
+  ctx.body = await appointmentService.updateById(
+    ctx.params.id,
+    updatedAppointment,
+    userId,
+    role
+  );
 };
 
 updateAppointment.validationScheme = {
@@ -132,31 +121,26 @@ module.exports = function installAppointmentsRoutes(app) {
   router.get(
     "/",
     validate(getAllAppointments.validationScheme),
-    checkAppointmentId,
     getAllAppointments
   );
   router.get(
     "/:id",
     validate(getAppointmentById.validationScheme),
-    checkAppointmentId,
     getAppointmentById
   );
   router.post(
     "/",
     validate(createAppointment.validationScheme),
-    checkAppointmentId,
     createAppointment
   );
   router.put(
     "/:id",
     validate(updateAppointment.validationScheme),
-    checkAppointmentId,
     updateAppointment
   );
   router.delete(
     "/:id",
     validate(deleteAppointment.validationScheme),
-    checkAppointmentId,
     deleteAppointment
   );
 
