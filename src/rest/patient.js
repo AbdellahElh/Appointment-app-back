@@ -12,7 +12,7 @@ const checkPatientId = (ctx, next) => {
   const { id } = ctx.params;
 
   // Admins can access any user's information
-  if (roles.includes(Role.ADMIN)) {
+  if (roles.includes(Role.ADMIN) || roles.includes(Role.DOCTOR)) {
     return next();
   }
 
@@ -42,20 +42,12 @@ login.validationScheme = {
   },
 };
 
-// const getAllPatients = async (ctx) => {
-//   ctx.body = await patientService.getAll();
-// };
-
 const getAllPatients = async (ctx) => {
-  const { roles, patientId, doctorId } = ctx.state.session;
-
-  console.log("User roles:", roles);
-  console.log("Doctor ID:", doctorId);
-
-  if (roles.includes(Role.DOCTOR)) {
-    // Include a check for the doctor's ID
-    const patients = await patientService.getPatientsByDoctor(doctorId);
-    ctx.body = patients;
+  const { userId, roles } = ctx.state.session;
+  if (roles.includes(Role.PATIENT)) {
+    ctx.body = await patientService.getAll(userId, Role.PATIENT);
+  } else if (roles.includes(Role.DOCTOR)) {
+    ctx.body = await patientService.getAll(userId, Role.DOCTOR);
   } else {
     ctx.body = await patientService.getAll();
   }
@@ -95,6 +87,7 @@ const createPatient = async (ctx) => {
 createPatient.validationScheme = {
   body: Joi.object({
     name: Joi.string(),
+    email: Joi.string().email(),
     street: Joi.string(),
     number: Joi.string(),
     postalCode: Joi.string(),
@@ -103,11 +96,18 @@ createPatient.validationScheme = {
   }),
 };
 
-
 const updatePatientById = async (ctx) => {
-  const updatedPatient = await patientService.updateById(ctx.params.id, {
-    ...ctx.request.body,
-  });
+  const { userId, roles } = ctx.state.session;
+  const { id } = ctx.params;
+
+  const updatedPatient = await patientService.updateById(
+    id,
+    {
+      ...ctx.request.body,
+    },
+    userId,
+    roles[0]
+  );
   ctx.body = updatedPatient;
 };
 
@@ -127,7 +127,10 @@ updatePatientById.validationScheme = {
 };
 
 const deletePatientById = async (ctx) => {
-  await patientService.deleteById(ctx.params.id);
+  const { userId, roles } = ctx.state.session;
+  const { id } = ctx.params;
+
+  await patientService.deleteById(id, userId, roles[0]);
   ctx.status = 204;
 };
 
@@ -136,6 +139,7 @@ deletePatientById.validationScheme = {
     id: Joi.number().integer().positive(),
   }),
 };
+
 
 module.exports = function installPatientsRoutes(app) {
   const router = new Router({
@@ -153,7 +157,7 @@ module.exports = function installPatientsRoutes(app) {
     "/",
     requireAuthentication,
     validate(getAllPatients.validationScheme),
-    checkPatientId,
+    // checkPatientId,
     getAllPatients
   );
   router.get(
@@ -169,7 +173,7 @@ module.exports = function installPatientsRoutes(app) {
     // requireAdmin,
     validate(createPatient.validationScheme),
     createPatient
-  )
+  );
   router.put(
     "/:id",
     requireAuthentication,

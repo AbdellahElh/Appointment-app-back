@@ -1,7 +1,12 @@
 const { getLogger } = require("../core/logging");
 const { tables, getKnex } = require("../data/index");
 
-const formatPatient = ({ patientId, patientEmail, patientRoles, ...patient }) => {
+const formatPatient = ({
+  patientId,
+  patientEmail,
+  patientRoles,
+  ...patient
+}) => {
   return {
     ...patient,
     user: {
@@ -84,12 +89,7 @@ const create = async ({
   }
 };
 
-const register = async ({
-  email,
-  passwordHash,
-  roles,
-  name,
-}) => {
+const register = async ({ email, passwordHash, roles, name }) => {
   try {
     const [userId] = await getKnex()(tables.user).insert({
       email,

@@ -94,48 +94,33 @@ const login = async (email, password) => {
   return await makeLoginData(patient);
 };
 
-const getAll = async () => {
-  const items = await patientRepository.findAll();
+const getAll = async (userId, role) => {
+  let items;
+
+  if (role === Role.PATIENT) {
+    const patient = await patientRepository.findById(userId);
+    items = patient ? [patient] : [];
+  } else {
+    items = await patientRepository.findAll();
+  }
+
   return {
     items: items.map(makeExposedPatient),
     count: items.length,
   };
 };
 
-const getPatientsByDoctor = async (doctorId) => {
-  try {
-    const appointmentService = require("./appointment");
-    const appointments = await appointmentService.getAll(null, doctorId);
-    const uniquePatients = new Map();
-
-    // Extract patient IDs from appointments, filtering out duplicates
-    const patientIds = Array.from(
-      new Set(appointments.items.map((appointment) => appointment.patient.id))
-    );
-
-    // Retrieve full patient details for each ID
-    for (const patientId of patientIds) {
-      console.log("Fetching patient with ID:", patientId);
-      const patient = await patientRepository.findById(patientId);
-      console.log("Fetched patient:", patient);
-      if (patient) {
-        uniquePatients.set(patient.id, patient);
-      }
-    }
-
-    const patients = Array.from(uniquePatients.values());
-
-    return patients.sort((a, b) => a.id - b.id);
-  } catch (error) {
-    console.error(error);
-  }
-};
-
-const getById = async (id) => {
+const getById = async (id, userId, role) => {
   const patient = await patientRepository.findById(id);
 
   if (!patient) {
     throw ServiceError.notFound(`No patient with id ${id} exists`, { id });
+  }
+
+  if (role === Role.PATIENT && id !== userId) {
+    throw ServiceError.forbidden(
+      "You are not allowed to view this patient's information"
+    );
   }
 
   return makeExposedPatient(patient);
@@ -143,6 +128,7 @@ const getById = async (id) => {
 
 const create = async ({
   name,
+  email,
   street,
   number,
   postalCode,
@@ -152,6 +138,7 @@ const create = async ({
   try {
     const id = await patientRepository.create({
       name,
+      email,
       street,
       number,
       postalCode,
@@ -185,8 +172,17 @@ const register = async ({ email, password, name }) => {
 
 const updateById = async (
   id,
-  { email, name, street, number, postalCode, city, birthdate }
+  { email, name, street, number, postalCode, city, birthdate },
+  userId,
+  role
 ) => {
+  console.log("updateById", id, userId, role);
+  if (role === Role.DOCTOR) {
+    throw ServiceError.forbidden(
+      "You are not allowed to update this patient's information"
+    );
+  }
+
   try {
     await patientRepository.updateById(id, {
       email,
@@ -197,13 +193,20 @@ const updateById = async (
       city,
       birthdate,
     });
-    return getById(id); // This should now return the updated email
+    return getById(id);
   } catch (error) {
     throw handleDBError(error);
   }
 };
 
-const deleteById = async (id) => {
+const deleteById = async (id, userId, role) => {
+  console.log("deleteById", id, userId, role);
+  if (role === Role.DOCTOR) {
+    throw ServiceError.forbidden(
+      "You are not allowed to delete this patient's information"
+    );
+  }
+
   try {
     const deleted = await patientRepository.deleteById(id);
 
@@ -220,7 +223,6 @@ module.exports = {
   checkRole,
   login,
   getAll,
-  getPatientsByDoctor,
   getById,
   create,
   register,
