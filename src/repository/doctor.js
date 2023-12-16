@@ -62,14 +62,16 @@ const create = async ({
   timeSlots,
 }) => {
   try {
-    const [userId] = await getKnex()(tables.user).returning('id').insert({
-      email,
-      password_hash: passwordHash,
-      roles: JSON.stringify(roles),
-    });    
+    const [userId] = await getKnex()(tables.user)
+      .returning("id")
+      .insert({
+        email,
+        password_hash: passwordHash,
+        roles: JSON.stringify(roles),
+      });
 
     await getKnex()(tables.doctor).insert({
-      id: userId, 
+      id: userId,
       name,
       speciality,
       numberOfPatients,
@@ -90,22 +92,27 @@ const create = async ({
   }
 };
 
-const register = async ({
-  email,
-  passwordHash,
-  roles,
-  name,
-}) => {
+const register = async ({ name, email, passwordHash, roles }) => {
   try {
-    const [userId] = await getKnex()(tables.user).returning('id').insert({
-      email,
-      password_hash: passwordHash,
-      roles: JSON.stringify(roles),
-    });    
+    const [userId] = await getKnex()(tables.user)
+      .returning("id")
+      .insert({
+        email,
+        password_hash: passwordHash,
+        roles: JSON.stringify(roles),
+      });
 
     await getKnex()(tables.doctor).insert({
-      id: userId, 
+      id: userId,
       name,
+      // speciality: "Default Speciality",
+      // numberOfPatients: 0,
+      // photo: "https://i.imgur.com/2WZtVXx.png",
+      // hospital: "Default Hospital",
+      // numberOfRatings: 0,
+      // rating: 0,
+      // about: "Default About",
+      // timeSlots: JSON.stringify([]),
     });
 
     return userId;
@@ -192,3 +199,5 @@ module.exports = {
   updateById,
   deleteById,
 };
+
+// 4otY7oR55hm2Co5AWSRl

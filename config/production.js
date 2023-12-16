@@ -1,15 +1,16 @@
 module.exports = {
   log: {
-    level: 'info',
+    level: "info",
     disabled: false,
   },
   cors: {
-    origins: ['https://appointment-app-web-2023-24.onrender.com'],
+    origins: ["https://appointment-app-web-2023-24.onrender.com"],
+    // origins: ["http://localhost:5173"],
     maxAge: 3 * 60 * 60,
   },
   database: {
-    client: 'mysql2',
-    host: 'localhost',
+    client: "mysql2",
+    host: "localhost",
     port: 3306,
     // name: 'AppointmentApp',
   },
@@ -22,10 +23,10 @@ module.exports = {
     },
     jwt: {
       secret:
-        'eenveeltemoeilijksecretdatniemandooitzalradenandersisdesitegehacked',
+        "eenveeltemoeilijksecretdatniemandooitzalradenandersisdesitegehacked",
       expirationInterval: 60 * 60 * 3000, // ms (3 hour)
-      issuer: 'appointment.hogent.be',
-      audience: 'appointment.hogent.be',
+      issuer: "appointment.hogent.be",
+      audience: "appointment.hogent.be",
     },
   },
 };

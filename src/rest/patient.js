@@ -140,7 +140,6 @@ deletePatientById.validationScheme = {
   }),
 };
 
-
 module.exports = function installPatientsRoutes(app) {
   const router = new Router({
     prefix: "/patients",

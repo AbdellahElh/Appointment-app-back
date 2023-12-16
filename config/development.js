@@ -16,12 +16,12 @@ module.exports = {
     username: "root",
     password: "",
   },
-  migrations: {
-    directory: "../src/data/migrations",
-  },
-  seeds: {
-    directory: "./seeds",
-  },
+  // migrations: {
+  //   directory: "../src/data/migrations",
+  // },
+  // seeds: {
+  //   directory: "./seeds",
+  // },
   auth: {
     argon: {
       saltLength: 16,
