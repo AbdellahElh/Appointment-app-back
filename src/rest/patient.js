@@ -11,7 +11,6 @@ const checkPatientId = (ctx, next) => {
   const { userId, roles } = ctx.state.session;
   const { id } = ctx.params;
 
-  // Admins can access any user's information
   if (roles.includes(Role.ADMIN) || roles.includes(Role.DOCTOR)) {
     return next();
   }
@@ -43,13 +42,17 @@ login.validationScheme = {
 };
 
 const getAllPatients = async (ctx) => {
-  const { userId, roles } = ctx.state.session;
-  if (roles.includes(Role.PATIENT)) {
+  const { roles, userId } = ctx.state.session;
+
+  if (roles.includes(Role.PATIENT) && !roles.includes(Role.DOCTOR)) {
+    console.log("patient id:", userId, "role:", roles);
     ctx.body = await patientService.getAll(userId, Role.PATIENT);
   } else if (roles.includes(Role.DOCTOR)) {
-    ctx.body = await patientService.getAll(userId, Role.DOCTOR);
-  } else {
-    ctx.body = await patientService.getAll();
+    console.log("doctor id:", userId, "role:", roles);
+    ctx.body = await patientService.getAll(null, Role.DOCTOR);
+  } else if (roles.includes(Role.ADMIN)) {
+    console.log("admin id:", userId, "role:", roles);
+    ctx.body = await patientService.getAll(null, Role.ADMIN);
   }
 };
 

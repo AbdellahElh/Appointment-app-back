@@ -11,7 +11,7 @@ module.exports = {
         email: "abdellah.elhalimimerroun@student.hogent.be",
         password_hash:
           "$argon2id$v=19$m=131072,t=6,p=1$9AMcua9h7va8aUQSEgH/TA$TUFuJ6VPngyGThMBVo3ONOZ5xYfee9J1eNMcA5bSpq4",
-        roles: JSON.stringify([Role.ADMIN /* , Role.PATIENT, Role.DOCTOR */]),
+        roles: JSON.stringify([Role.ADMIN, Role.PATIENT, Role.DOCTOR]),
       },
       {
         id: 1,
@@ -66,3 +66,5 @@ module.exports = {
     ]);
   },
 };
+
+// 4otY7oR55hm2Co5AWSRl
