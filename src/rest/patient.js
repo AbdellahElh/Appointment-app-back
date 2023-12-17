@@ -54,9 +54,14 @@ login.validationScheme = {
 // };
 
 const getAllPatients = async (ctx) => {
-  const { roles, userId } = ctx.state.session;
-  ctx.body = await patientService.getAll(userId, roles);
+  ctx.body = await patientService.getAll();
 };
+getAllPatients.validationScheme = null;
+
+// const getAllPatients = async (ctx) => {
+//   const { roles, userId } = ctx.state.session;
+//   ctx.body = await patientService.getAll(userId, roles);
+// };
 
 getAllPatients.validationScheme = null;
 

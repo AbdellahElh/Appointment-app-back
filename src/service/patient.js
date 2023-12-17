@@ -94,13 +94,21 @@ const login = async (email, password) => {
   return await makeLoginData(patient);
 };
 
-// const getAll = async (userId, role) => {
+const getAll = async () => {
+  const items = await patientRepository.findAll();
+  return {
+    items: items.map(makeExposedPatient),
+    count: items.length,
+  };
+};
+
+// const getAll = async (userId, roles) => {
 //   let items;
 
-//   if (role === Role.PATIENT) {
+//   if (roles.includes(Role.PATIENT) && !roles.includes(Role.ADMIN)) {
 //     const patient = await patientRepository.findById(userId);
 //     items = patient ? [patient] : [];
-//   } else {
+//   } else if (roles.includes(Role.DOCTOR) || roles.includes(Role.ADMIN)) {
 //     items = await patientRepository.findAll();
 //   }
 
@@ -109,22 +117,6 @@ const login = async (email, password) => {
 //     count: items.length,
 //   };
 // };
-
-const getAll = async (userId, roles) => {
-  let items;
-
-  if (roles.includes(Role.PATIENT) && !roles.includes(Role.DOCTOR)) {
-    const patient = await patientRepository.findById(userId);
-    items = patient ? [patient] : [];
-  } else if (roles.includes(Role.DOCTOR) || roles.includes(Role.ADMIN)) {
-    items = await patientRepository.findAll();
-  }
-
-  return {
-    items: items.map(makeExposedPatient),
-    count: items.length,
-  };
-};
 
 const getById = async (id, userId, role) => {
   const patient = await patientRepository.findById(id);
