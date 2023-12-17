@@ -118,8 +118,6 @@ module.exports = function installDoctorsRoutes(app) {
   router.post("/login", validate(login.validationScheme), login);
   router.post("/register", validate(register.validationScheme), register);
 
-  const requireAdmin = makeRequireRole(Role.ADMIN);
-
   // Routes with authentication/authorization
   router.get(
     "/",

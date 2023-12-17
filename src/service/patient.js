@@ -94,13 +94,29 @@ const login = async (email, password) => {
   return await makeLoginData(patient);
 };
 
-const getAll = async (userId, role) => {
+// const getAll = async (userId, role) => {
+//   let items;
+
+//   if (role === Role.PATIENT) {
+//     const patient = await patientRepository.findById(userId);
+//     items = patient ? [patient] : [];
+//   } else {
+//     items = await patientRepository.findAll();
+//   }
+
+//   return {
+//     items: items.map(makeExposedPatient),
+//     count: items.length,
+//   };
+// };
+
+const getAll = async (userId, roles) => {
   let items;
 
-  if (role === Role.PATIENT) {
+  if (roles.includes(Role.PATIENT) && !roles.includes(Role.DOCTOR)) {
     const patient = await patientRepository.findById(userId);
     items = patient ? [patient] : [];
-  } else {
+  } else if (roles.includes(Role.DOCTOR) || roles.includes(Role.ADMIN)) {
     items = await patientRepository.findAll();
   }
 

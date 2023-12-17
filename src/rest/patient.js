@@ -41,19 +41,21 @@ login.validationScheme = {
   },
 };
 
+// const getAllPatients = async (ctx) => {
+//   const { roles, userId } = ctx.state.session;
+
+//   if (roles.includes(Role.PATIENT) && !roles.includes(Role.DOCTOR)) {
+//     ctx.body = await patientService.getAll(userId, Role.PATIENT);
+//   } else if (roles.includes(Role.DOCTOR)) {
+//     ctx.body = await patientService.getAll(null, Role.DOCTOR);
+//   } else if (roles.includes(Role.ADMIN)) {
+//     ctx.body = await patientService.getAll(null, Role.ADMIN);
+//   }
+// };
+
 const getAllPatients = async (ctx) => {
   const { roles, userId } = ctx.state.session;
-
-  if (roles.includes(Role.PATIENT) && !roles.includes(Role.DOCTOR)) {
-    console.log("patient id:", userId, "role:", roles);
-    ctx.body = await patientService.getAll(userId, Role.PATIENT);
-  } else if (roles.includes(Role.DOCTOR)) {
-    console.log("doctor id:", userId, "role:", roles);
-    ctx.body = await patientService.getAll(null, Role.DOCTOR);
-  } else if (roles.includes(Role.ADMIN)) {
-    console.log("admin id:", userId, "role:", roles);
-    ctx.body = await patientService.getAll(null, Role.ADMIN);
-  }
+  ctx.body = await patientService.getAll(userId, roles);
 };
 
 getAllPatients.validationScheme = null;
@@ -151,8 +153,6 @@ module.exports = function installPatientsRoutes(app) {
   // Public routes
   router.post("/login", validate(login.validationScheme), login);
   router.post("/register", validate(register.validationScheme), register);
-
-  const requireAdmin = makeRequireRole(Role.ADMIN);
 
   // Routes with authentication/authorization
   router.get(
