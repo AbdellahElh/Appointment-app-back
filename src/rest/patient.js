@@ -172,7 +172,6 @@ module.exports = function installPatientsRoutes(app) {
   router.post(
     "/",
     requireAuthentication,
-    // requireAdmin,
     validate(createPatient.validationScheme),
     createPatient
   );

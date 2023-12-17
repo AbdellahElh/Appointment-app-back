@@ -9,9 +9,9 @@ const appointmentService = require("../service/appointment");
 const getAllAppointments = async (ctx) => {
   const { userId, roles } = ctx.state.session;
 
-  if (roles.includes(Role.PATIENT)) {
+  if (roles.includes(Role.PATIENT) && !roles.includes(Role.ADMIN)) {
     ctx.body = await appointmentService.getAll(userId);
-  } else if (roles.includes(Role.DOCTOR)) {
+  } else if (roles.includes(Role.DOCTOR) && !roles.includes(Role.ADMIN)) {
     ctx.body = await appointmentService.getAllDoctorAppointments(userId);
   } else {
     ctx.body = await appointmentService.getAllAppointments();
@@ -69,15 +69,13 @@ const updateAppointment = async (ctx) => {
     description: ctx.request.body.description,
     patientId: ctx.request.body.patientId,
     doctorId: ctx.request.body.doctorId,
-    // patientId: ctx.state.session.patientId,
-    // doctorId: ctx.state.session.doctorId,
   };
 
   ctx.body = await appointmentService.updateById(
     ctx.params.id,
     updatedAppointment,
-    userId,
-    role
+    role,
+    userId
   );
 };
 

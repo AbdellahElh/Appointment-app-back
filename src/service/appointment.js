@@ -39,8 +39,8 @@ const getById = async (id, userId, role) => {
   // Check if the user is allowed to view the appointment
   if (
     role !== "admin" &&
-    appointment.patient.id !== userId &&
-    appointment.doctor.id !== userId
+    ((role === "patient" && userId !== appointment.patientId) ||
+      (role === "doctor" && userId !== appointment.doctorId))
   ) {
     throw ServiceError.forbidden(
       `You are not allowed to view this appointment`,
@@ -90,18 +90,14 @@ const updateById = async (
   role,
   userId
 ) => {
-  if (patientId) {
-    const existingPatient = await patientService.getById(patientId);
-    if (!existingPatient) {
-      throw ServiceError.notFound(`There is no patient with id ${id}.`, { id });
-    }
+  const existingPatient = patientId ? await patientService.getById(patientId) : null;
+  if (!existingPatient) {
+    throw ServiceError.notFound(`There is no patient with id ${id}.`, { id });
   }
 
-  if (doctorId) {
-    const existingDoctor = await doctorService.getById(doctorId);
-    if (!existingDoctor) {
-      throw ServiceError.notFound(`There is no doctor with id ${id}.`, { id });
-    }
+  const existingDoctor = doctorId ? await doctorService.getById(doctorId) : null;
+  if (!existingDoctor) {
+    throw ServiceError.notFound(`There is no doctor with id ${id}.`, { id });
   }
 
   const appointment = await appointmentRepo.findById(id);
@@ -113,10 +109,8 @@ const updateById = async (
 
   if (
     role !== "admin" &&
-    role === "patient" &&
-    userId !== appointment.patientId &&
-    role === "doctor" &&
-    userId !== appointment.doctorId
+    ((role === "patient" && userId !== appointment.patientId) ||
+      (role === "doctor" && userId !== appointment.doctorId))
   ) {
     throw ServiceError.unauthorized(
       "You are not authorized to update this appointment."
@@ -124,7 +118,7 @@ const updateById = async (
   }
 
   try {
-    await appointmentRepo.findById(id, {
+    await appointmentRepo.updateById(id, {
       patientId,
       doctorId,
       date,
@@ -140,12 +134,15 @@ const updateById = async (
       "Doctor ID:",
       doctorId
     );
-    return getById(id, patientId, doctorId);
+
+    const updatedAppointment = await appointmentRepo.findById(id);
+    console.log("Updated appointment:", updatedAppointment);
+
+    return updatedAppointment;
   } catch (error) {
     throw handleDBError(error);
   }
 };
-
 const deleteById = async (id, patientId, doctorId) => {
   try {
     const deleted = await appointmentRepo.deleteById(id, patientId, doctorId);

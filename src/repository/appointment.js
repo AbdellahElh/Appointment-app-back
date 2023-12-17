@@ -170,7 +170,13 @@ const updateById = async (
         doctor_id: doctorId,
       })
       .where(`${tables.appointment}.id`, id);
-    return id;
+
+    const updatedAppointment = await getKnex()(tables.appointment)
+      .select("*")
+      .where(`${tables.appointment}.id`, id)
+      .first();
+
+    return updatedAppointment;
   } catch (error) {
     getLogger().error("Error in updateById", {
       error,
