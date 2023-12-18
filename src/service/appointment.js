@@ -6,16 +6,19 @@ const doctorService = require("./doctor");
 const handleDBError = require("./_handleDBError");
 
 const getAll = async (userId, roles) => {
+  console.log("user roles: ", roles, "user id: ", userId);
+
   let items;
 
   if (roles.includes(Role.PATIENT) && !roles.includes(Role.ADMIN)) {
     console.log("patient user roles: ", roles, "user id: ", userId);
-
     items = await appointmentRepo.findAll(userId);
   } else if (roles.includes(Role.DOCTOR) && !roles.includes(Role.ADMIN)) {
     console.log("doctor user roles: ", roles, "user id: ", userId);
-
     items = await appointmentRepo.findAllDoctorAppointments(userId);
+  } else if (roles.includes(Role.PATIENT) && roles.includes(Role.DOCTOR) && !roles.includes(Role.ADMIN)) {
+    console.log("patient and doctor user roles: ", roles, "user id: ", userId);
+    items = [...await appointmentRepo.findAll(userId), ...await appointmentRepo.findAllDoctorAppointments(userId)];
   } else {
     // console.log("admin user roles: ", roles, "user id: ", userId);
     // items = await appointmentRepo.findAllAppointments();

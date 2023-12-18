@@ -34,6 +34,8 @@ const SELECT_COLUMNS = [
 ];
 
 const findAll = async (userId) => {
+  console.log(`findAll called with userId: ${userId}`);
+
   const query = getKnex()(tables.appointment)
     .join(
       tables.doctor,
@@ -55,10 +57,14 @@ const findAll = async (userId) => {
 
   const appointments = await query;
 
+  console.log(`findAll returned ${appointments.length} appointments`);
+
   return appointments.map(formatAppointment);
 };
 
 const findAllAppointments = async () => {
+  console.log(`findAllAppointments called`);
+
   const query = getKnex()(tables.appointment)
     .join(
       tables.doctor,
@@ -79,10 +85,15 @@ const findAllAppointments = async () => {
 
   const appointments = await query;
 
+  console.log(`findAllAppointments returned ${appointments.length} appointments`);
+
+
   return appointments.map(formatAppointment);
 };
 
 const findAllDoctorAppointments = async (userId) => {
+  console.log(`findAllDoctorAppointments called with userId: ${userId}`);
+
   const query = getKnex()(tables.appointment)
     .join(
       tables.doctor,
@@ -103,6 +114,8 @@ const findAllDoctorAppointments = async (userId) => {
   console.log(query.toSQL().toNative());
 
   const appointments = await query;
+
+  console.log(`findAllDoctorAppointments returned ${appointments.length} appointments`);
 
   return appointments.map(formatAppointment);
 };
