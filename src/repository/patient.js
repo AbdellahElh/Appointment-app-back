@@ -1,12 +1,7 @@
 const { getLogger } = require("../core/logging");
 const { tables, getKnex } = require("../data/index");
 
-const formatPatient = ({
-  patientId,
-  patientEmail,
-  patientRoles,
-  ...patient
-}) => {
+const formatPatient = ({ patientId, patientEmail, patientRoles, ...patient }) => {
   return {
     ...patient,
     user: {
@@ -37,6 +32,17 @@ const findCount = async () => {
   const [count] = await getKnex()(tables.patient).count();
 
   return count["count(*)"];
+};
+
+const findByDoctorId = async (doctorId) => {
+  const patients = await getKnex()(tables.appointment)
+    .join(tables.patient, `${tables.patient}.id`, "=", `${tables.appointment}.patient_id`)
+    .join(tables.user, `${tables.user}.id`, "=", `${tables.patient}.id`)
+    .where(`${tables.appointment}.doctor_id`, doctorId)
+    .select(SELECT_COLUMNS)
+    .orderBy(`${tables.patient}.name`, "ASC");
+
+  return patients.map(formatPatient);
 };
 
 const findById = async (id) => {
@@ -89,7 +95,12 @@ const create = async ({
   }
 };
 
-const register = async ({ email, passwordHash, roles, name }) => {
+const register = async ({
+  email,
+  passwordHash,
+  roles,
+  name,
+}) => {
   try {
     const [userId] = await getKnex()(tables.user).insert({
       email,
@@ -177,6 +188,7 @@ const deleteById = async (id) => {
 module.exports = {
   findAll,
   findCount,
+  findByDoctorId,
   findById,
   findByEmail,
   create,

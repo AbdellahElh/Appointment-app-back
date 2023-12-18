@@ -41,27 +41,10 @@ login.validationScheme = {
   },
 };
 
-// const getAllPatients = async (ctx) => {
-//   const { roles, userId } = ctx.state.session;
-
-//   if (roles.includes(Role.PATIENT) && !roles.includes(Role.DOCTOR)) {
-//     ctx.body = await patientService.getAll(userId, Role.PATIENT);
-//   } else if (roles.includes(Role.DOCTOR)) {
-//     ctx.body = await patientService.getAll(null, Role.DOCTOR);
-//   } else if (roles.includes(Role.ADMIN)) {
-//     ctx.body = await patientService.getAll(null, Role.ADMIN);
-//   }
-// };
-
 const getAllPatients = async (ctx) => {
-  ctx.body = await patientService.getAll();
+  const { roles, userId } = ctx.state.session;
+  ctx.body = await patientService.getAll(userId, roles);
 };
-getAllPatients.validationScheme = null;
-
-// const getAllPatients = async (ctx) => {
-//   const { roles, userId } = ctx.state.session;
-//   ctx.body = await patientService.getAll(userId, roles);
-// };
 
 getAllPatients.validationScheme = null;
 
