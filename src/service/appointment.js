@@ -7,6 +7,7 @@ const handleDBError = require("./_handleDBError");
 
 const getAll = async (userId, roles) => {
   console.log("getAll called with userId: ", userId, "and roles: ", roles);
+  console.log("Role.PATIENT is: ", Role.PATIENT);
 
   let items;
 
@@ -16,15 +17,26 @@ const getAll = async (userId, roles) => {
   } else if (roles.includes(Role.DOCTOR) && !roles.includes(Role.ADMIN)) {
     console.log("Handling DOCTOR role");
     items = await appointmentRepo.findAllDoctorAppointments(userId);
-  } else if (roles.includes(Role.PATIENT) && roles.includes(Role.DOCTOR) && !roles.includes(Role.ADMIN)) {
+  } else if (
+    roles.includes(Role.PATIENT) &&
+    roles.includes(Role.DOCTOR) &&
+    !roles.includes(Role.ADMIN)
+  ) {
     console.log("Handling PATIENT and DOCTOR roles");
-    items = [...await appointmentRepo.findAll(userId), ...await appointmentRepo.findAllDoctorAppointments(userId)];
+    items = [
+      ...(await appointmentRepo.findAll(userId)),
+      ...(await appointmentRepo.findAllDoctorAppointments(userId)),
+    ];
   } else {
     // console.log("admin user roles: ", roles, "user id: ", userId);
     // items = await appointmentRepo.findAllAppointments();
-    console.log("No matching roles, throwing error", roles, userId);
-    throw ServiceError.forbidden("You are not allowed to view this appointment");
+    console.log("No matching roles, throwing error");
+    throw ServiceError.forbidden(
+      "You are not allowed to view this appointment"
+    );
   }
+
+  console.log("Returning ", items.length, " items");
 
   return {
     items,
