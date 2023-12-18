@@ -21,8 +21,8 @@ const getAllAppointments = async (ctx) => {
 getAllAppointments.validationScheme = null;
 
 const getAppointmentById = async (ctx) => {
-  const { userId, role } = ctx.state.session;
-  ctx.body = await appointmentService.getById(ctx.params.id, userId, role);
+  const { userId, roles } = ctx.state.session;
+  ctx.body = await appointmentService.getById(ctx.params.id, userId, roles);
 };
 
 getAppointmentById.validationScheme = {
@@ -60,7 +60,7 @@ createAppointment.validationScheme = {
 };
 
 const updateAppointment = async (ctx) => {
-  const { userId, role } = ctx.state.session;
+  const { userId, roles } = ctx.state.session;
   const updatedAppointment = {
     ...ctx.request.body,
     date: new Date(ctx.request.body.date),
@@ -74,7 +74,7 @@ const updateAppointment = async (ctx) => {
   ctx.body = await appointmentService.updateById(
     ctx.params.id,
     updatedAppointment,
-    role,
+    roles,
     userId
   );
 };

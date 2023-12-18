@@ -1,6 +1,6 @@
 const appointmentRepo = require("../repository/appointment");
 const ServiceError = require("../core/serviceError");
-
+const Role = require("../core/roles");
 const patientService = require("./patient");
 const doctorService = require("./doctor");
 const handleDBError = require("./_handleDBError");
@@ -29,7 +29,7 @@ const getAllDoctorAppointments = async (userId) => {
   };
 };
 
-const getById = async (id, userId, role) => {
+const getById = async (id, userId, roles) => {
   const appointment = await appointmentRepo.findById(id);
 
   if (!appointment) {
@@ -37,10 +37,18 @@ const getById = async (id, userId, role) => {
   }
 
   // Check if the user is allowed to view the appointment
+  // if (
+  //   role !== "admin" &&
+  //   ((role === "patient" && userId !== appointment.patientId) ||
+  //     (role === "doctor" && userId !== appointment.doctorId))
+  // )
   if (
-    role !== "admin" &&
-    ((role === "patient" && userId !== appointment.patientId) ||
-      (role === "doctor" && userId !== appointment.doctorId))
+    (roles.includes(Role.PATIENT) &&
+      id !== userId &&
+      !roles.includes(Role.ADMIN)) ||
+    (roles.includes(Role.DOCTOR) &&
+      id !== userId &&
+      !roles.includes(Role.ADMIN))
   ) {
     throw ServiceError.forbidden(
       `You are not allowed to view this appointment`,
@@ -87,15 +95,19 @@ const create = async ({
 const updateById = async (
   id,
   { patientId, doctorId, date, description, numberOfBeds, condition },
-  role,
+  roles,
   userId
 ) => {
-  const existingPatient = patientId ? await patientService.getById(patientId) : null;
+  const existingPatient = patientId
+    ? await patientService.getById(patientId)
+    : null;
   if (!existingPatient) {
     throw ServiceError.notFound(`There is no patient with id ${id}.`, { id });
   }
 
-  const existingDoctor = doctorId ? await doctorService.getById(doctorId) : null;
+  const existingDoctor = doctorId
+    ? await doctorService.getById(doctorId)
+    : null;
   if (!existingDoctor) {
     throw ServiceError.notFound(`There is no doctor with id ${id}.`, { id });
   }
@@ -108,9 +120,10 @@ const updateById = async (
   }
 
   if (
-    role !== "admin" &&
-    ((role === "patient" && userId !== appointment.patientId) ||
-      (role === "doctor" && userId !== appointment.doctorId))
+    (roles.includes(Role.DOCTOR) && !roles.includes(Role.ADMIN)) ||
+    (roles.includes(Role.PATIENT) &&
+      userId !== patientId &&
+      !roles.includes(Role.ADMIN))
   ) {
     throw ServiceError.unauthorized(
       "You are not authorized to update this appointment."
