@@ -137,7 +137,7 @@ module.exports = function installDoctorsRoutes(app) {
     "/:id",
     requireAuthentication,
     validate(updateDoctorById.validationScheme),
-    checkDoctorId,
+    // checkDoctorId,
     updateDoctorById
   );
   router.delete(
