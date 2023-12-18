@@ -17,7 +17,7 @@ module.exports = {
       table.integer("numberOfRatings").unsigned().defaultTo(0);
       table.string("rating", 255).defaultTo(0);
       table.text("about").defaultTo("Default About");
-      table.json("timeSlots").defaultTo(JSON.stringify([]));
+      table.json("timeSlots");
 
       table
         .foreign("id", "fk_doctor_user")

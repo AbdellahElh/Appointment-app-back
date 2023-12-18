@@ -4,7 +4,7 @@ module.exports = {
     disabled: false, //op true zetten
   },
   cors: {
-    origins: ['http://localhost:5173'],
+    origins: ["http://localhost:5173"],
     maxAge: 3 * 60 * 60,
   },
   database: {
@@ -16,9 +16,24 @@ module.exports = {
     password: "",
   },
   migrations: {
-    directory: '../src/data/migrations', 
+    directory: "../src/data/migrations",
   },
   seeds: {
-    directory: './seeds',
+    directory: "./seeds",
+  },
+  auth: {
+    argon: {
+      saltLength: 16,
+      hashLength: 32,
+      timeCost: 6,
+      memoryCost: 2 ** 17,
+    },
+    jwt: {
+      secret:
+        "eenveeltemoeilijksecretdatniemandooitzalradenandersisdesitegehacked",
+      expirationInterval: 60 * 60 * 1000, // ms (1 hour)
+      issuer: "appointment.hogent.be",
+      audience: "appointment.hogent.be",
+    },
   },
 };

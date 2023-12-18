@@ -1,39 +1,39 @@
-const config = require('config'); // 👈 2
+const config = require("config");
 
-const { initializeLogger } = require('../src/core/logging'); // 👈 2
-const Role = require('../src/core/roles'); // 👈 4
-const { initializeData, getKnex, tables } = require('../src/data'); // 👈 3 en 4
+const { initializeLogger } = require("../src/core/logging");
+const Role = require("../src/core/roles");
+const { initializeData, getKnex, tables } = require("../src/data");
 
-// 👇 1
 module.exports = async () => {
-  // Create a database connection
-  // 👇 2
   initializeLogger({
-    level: config.get('log.level'),
-    disabled: config.get('log.disabled'),
+    level: config.get("log.level"),
+    disabled: config.get("log.disabled"),
   });
-  await initializeData(); // 👈 3
+  await initializeData();
 
-  // Insert a test user with password 12345678
-  const knex = getKnex(); // 👈 3
+  const knex = getKnex();
 
-  // 👇 4
   await knex(tables.user).insert([
     {
-      id: 1,
-      // name: 'Test User',
-      email: 'test.user@hogent.be',
+      id: 5,
+      email: "abdellah.elhalimimerroun@student.hogent.be",
       password_hash:
-        '$argon2id$v=19$m=2048,t=2,p=1$NF6PFLTgSYpDSex0iFeFQQ$Rz5ouoM9q3EH40hrq67BC3Ajsu/ohaHnkKBLunELLzU',
-      roles: JSON.stringify([Role.USER]),
+        "$argon2id$v=19$m=131072,t=6,p=1$9AMcua9h7va8aUQSEgH/TA$TUFuJ6VPngyGThMBVo3ONOZ5xYfee9J1eNMcA5bSpq4",
+      roles: JSON.stringify([Role.ADMIN, Role.PATIENT, Role.DOCTOR]),
     },
     {
-      id: 2,
-      // name: 'Admin User',
-      email: 'admin.user@hogent.be',
+      id: 1,
+      email: "emily.smith@gmail.com",
       password_hash:
-        '$argon2id$v=19$m=2048,t=2,p=1$NF6PFLTgSYpDSex0iFeFQQ$Rz5ouoM9q3EH40hrq67BC3Ajsu/ohaHnkKBLunELLzU',
-      roles: JSON.stringify([Role.ADMIN, Role.USER]),
+        "$argon2id$v=19$m=131072,t=6,p=1$9AMcua9h7va8aUQSEgH/TA$TUFuJ6VPngyGThMBVo3ONOZ5xYfee9J1eNMcA5bSpq4",
+      roles: JSON.stringify([Role.PATIENT]),
+    },
+    {
+      id: 10,
+      email: "olivia.anderson@gmail.com",
+      password_hash:
+        "$argon2id$v=19$m=131072,t=6,p=1$9AMcua9h7va8aUQSEgH/TA$TUFuJ6VPngyGThMBVo3ONOZ5xYfee9J1eNMcA5bSpq4",
+      roles: JSON.stringify([Role.DOCTOR]),
     },
   ]);
 };

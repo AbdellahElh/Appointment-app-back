@@ -5,13 +5,6 @@
 
 /** @type {import('jest').Config} */
 const config = {
-  collectCoverageFrom: [
-    "./src/repository/**/*.js",
-    "./src/service/**/*.js",
-    "./src/rest/**/*.js",
-  ],
-  coverageDirectory: "__tests__/coverage",
-
   // All imported modules in your tests should be mocked automatically
   // automock: false,
 
@@ -19,7 +12,7 @@ const config = {
   // bail: 0,
 
   // The directory where Jest should store its cached dependency information
-  // cacheDirectory: "C:\\Users\\abdey\\AppData\\Local\\Temp\\jest",
+  // cacheDirectory: "/tmp/jest_rs",
 
   // Automatically clear mock calls, instances, contexts and results before every test
   // clearMocks: false,
@@ -28,14 +21,18 @@ const config = {
   // collectCoverage: false,
 
   // An array of glob patterns indicating a set of files for which coverage information should be collected
-  // collectCoverageFrom: undefined,
+  collectCoverageFrom: [
+    './src/repository/**/*.js',
+    './src/service/**/*.js',
+    './src/rest/**/*.js',
+  ],
 
   // The directory where Jest should output its coverage files
-  // coverageDirectory: undefined,
+  coverageDirectory: '__tests__/coverage',
 
   // An array of regexp pattern strings used to skip coverage collection
   // coveragePathIgnorePatterns: [
-  //   "\\\\node_modules\\\\"
+  //   "/node_modules/"
   // ],
 
   // Indicates which provider should be used to instrument code for coverage
@@ -67,10 +64,10 @@ const config = {
   // forceCoverageMatch: [],
 
   // A path to a module which exports an async function that is triggered once before all test suites
-  globalSetup: './__tests__/global.setup.js',
+  globalSetup: "./__tests__/global.setup.js",
 
   // A path to a module which exports an async function that is triggered once after all test suites
-  globalTeardown: './__tests__/global.teardown.js',
+  globalTeardown: "./__tests__/global.teardown.js",
 
   // A set of global variables that need to be available in all test environments
   // globals: {},
@@ -161,12 +158,13 @@ const config = {
   // testLocationInResults: false,
 
   // The glob patterns Jest uses to detect test files
-
-  testMatch: ["**/__tests__/**/?(*.)+(spec|test).[jt]s?(x)"],
+  testMatch: [
+    "**/__tests__/**/?(*.)+(spec|test).[jt]s?(x)",
+  ],
 
   // An array of regexp pattern strings that are matched against all test paths, matched tests are skipped
   // testPathIgnorePatterns: [
-  //   "\\\\node_modules\\\\"
+  //   "/node_modules/"
   // ],
 
   // The regexp pattern or array of patterns that Jest uses to detect test files
@@ -183,8 +181,8 @@ const config = {
 
   // An array of regexp pattern strings that are matched against all source file paths, matched files will skip transformation
   // transformIgnorePatterns: [
-  //   "\\\\node_modules\\\\",
-  //   "\\.pnp\\.[^\\\\]+$"
+  //   "/node_modules/",
+  //   "\\.pnp\\.[^\\/]+$"
   // ],
 
   // An array of regexp pattern strings that are matched against all modules before the module loader will automatically return a mock for them
