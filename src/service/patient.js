@@ -189,7 +189,7 @@ const updateById = async (
   role
 ) => {
   console.log("updateById", id, userId, role);
-  if (role === Role.DOCTOR) {
+  if (role === Role.DOCTOR && !role === Role.ADMIN) {
     throw ServiceError.forbidden(
       "You are not allowed to update this patient's information"
     );
