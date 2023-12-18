@@ -17,7 +17,7 @@ const checkDoctorId = (ctx, next) => {
   }
 
   // users can only access their own data
-  if (id !== userId) {
+  if (id !== userId && !roles.includes(Role.ADMIN)) {
     return ctx.throw(
       403,
       "You are not allowed to view this doctor's information",
