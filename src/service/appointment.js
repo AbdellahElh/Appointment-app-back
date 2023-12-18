@@ -5,24 +5,22 @@ const patientService = require("./patient");
 const doctorService = require("./doctor");
 const handleDBError = require("./_handleDBError");
 
-const getAll = async (userId) => {
-  const items = await appointmentRepo.findAll(userId);
-  return {
-    items,
-    count: items.length,
-  };
-};
+const getAll = async (userId, roles) => {
+  let items;
 
-const getAllAppointments = async () => {
-  const items = await appointmentRepo.findAllAppointments();
-  return {
-    items,
-    count: items.length,
-  };
-};
+  if (roles.includes(Role.PATIENT) && !roles.includes(Role.ADMIN)) {
+    console.log("patient user roles: ", roles, "user id: ", userId);
 
-const getAllDoctorAppointments = async (userId) => {
-  const items = await appointmentRepo.findAllDoctorAppointments(userId);
+    items = await appointmentRepo.findAll(userId);
+  } else if (roles.includes(Role.DOCTOR) && !roles.includes(Role.ADMIN)) {
+    console.log("doctor user roles: ", roles, "user id: ", userId);
+
+    items = await appointmentRepo.findAllDoctorAppointments(userId);
+  } else {
+    console.log("admin user roles: ", roles, "user id: ", userId);
+    items = await appointmentRepo.findAllAppointments();
+  }
+
   return {
     items,
     count: items.length,
@@ -35,7 +33,11 @@ const getById = async (id, userId, roles) => {
   if (!appointment) {
     throw ServiceError.notFound(`No appointment with id ${id} exists`, { id });
   }
-  if (roles.includes(Role.PATIENT) && id !== userId && !roles.includes(Role.ADMIN)) {
+  if (
+    roles.includes(Role.PATIENT) &&
+    id !== userId &&
+    !roles.includes(Role.ADMIN)
+  ) {
     console.log("user roles: ", roles, "user id: ", userId);
 
     throw ServiceError.forbidden(
@@ -44,9 +46,22 @@ const getById = async (id, userId, roles) => {
     );
   }
 
-  if (roles.includes(Role.DOCTOR) && appointment.doctor.id !== userId && !roles.includes(Role.ADMIN)) {
-    console.log("user roles: ", roles, "user id: ", userId, "appointment doctor id: ", appointment.doctor.id);
-    throw ServiceError.forbidden("You are not allowed to view this appointment");
+  if (
+    roles.includes(Role.DOCTOR) &&
+    appointment.doctor.id !== userId &&
+    !roles.includes(Role.ADMIN)
+  ) {
+    console.log(
+      "user roles: ",
+      roles,
+      "user id: ",
+      userId,
+      "appointment doctor id: ",
+      appointment.doctor.id
+    );
+    throw ServiceError.forbidden(
+      "You are not allowed to view this appointment"
+    );
   }
 
   return appointment;
@@ -92,19 +107,19 @@ const updateById = async (
   userId
 ) => {
   // Ensure roles is an array
-  console.log("type of role: ",typeof roles);
+  console.log("type of role: ", typeof roles);
   console.log("roles: ", roles);
 
   const existingPatient = patientId
-  ? await patientService.getById(patientId, userId, roles)
-  : null;
+    ? await patientService.getById(patientId, userId, roles)
+    : null;
   if (!existingPatient) {
     throw ServiceError.notFound(`There is no patient with id ${id}.`, { id });
   }
 
   const existingDoctor = doctorId
-  ? await doctorService.getById(doctorId, userId, roles)
-  : null;
+    ? await doctorService.getById(doctorId, userId, roles)
+    : null;
   if (!existingDoctor) {
     throw ServiceError.notFound(`There is no doctor with id ${id}.`, { id });
   }
@@ -116,7 +131,11 @@ const updateById = async (
     });
   }
 
-  if (roles.includes(Role.PATIENT) && id !== userId && !roles.includes(Role.ADMIN)) {
+  if (
+    roles.includes(Role.PATIENT) &&
+    id !== userId &&
+    !roles.includes(Role.ADMIN)
+  ) {
     console.log("user roles: ", roles, "user id: ", userId);
 
     throw ServiceError.forbidden(
@@ -125,9 +144,22 @@ const updateById = async (
     );
   }
 
-  if (roles.includes(Role.DOCTOR) && appointment.doctor.id !== userId && !roles.includes(Role.ADMIN)) {
-    console.log("user roles: ", roles, "user id: ", userId, "appointment doctor id: ", appointment.doctor.id);
-    throw ServiceError.forbidden("You are not allowed to view this appointment");
+  if (
+    roles.includes(Role.DOCTOR) &&
+    appointment.doctor.id !== userId &&
+    !roles.includes(Role.ADMIN)
+  ) {
+    console.log(
+      "user roles: ",
+      roles,
+      "user id: ",
+      userId,
+      "appointment doctor id: ",
+      appointment.doctor.id
+    );
+    throw ServiceError.forbidden(
+      "You are not allowed to view this appointment"
+    );
   }
 
   try {
@@ -173,8 +205,6 @@ const deleteById = async (id, patientId, doctorId) => {
 
 module.exports = {
   getAll,
-  getAllAppointments,
-  getAllDoctorAppointments,
   getById,
   create,
   updateById,

@@ -8,14 +8,7 @@ const appointmentService = require("../service/appointment");
 
 const getAllAppointments = async (ctx) => {
   const { userId, roles } = ctx.state.session;
-
-  if (roles.includes(Role.PATIENT) && !roles.includes(Role.ADMIN)) {
-    ctx.body = await appointmentService.getAll(userId);
-  } else if (roles.includes(Role.DOCTOR) && !roles.includes(Role.ADMIN)) {
-    ctx.body = await appointmentService.getAllDoctorAppointments(userId);
-  } else {
-    ctx.body = await appointmentService.getAllAppointments();
-  }
+  ctx.body = await appointmentService.getAll(userId, roles);
 };
 
 getAllAppointments.validationScheme = null;
