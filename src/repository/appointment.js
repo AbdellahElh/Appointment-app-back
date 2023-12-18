@@ -1,22 +1,20 @@
 const { getLogger } = require("../core/logging");
 const { tables, getKnex } = require("../data/index");
 
-const formatAppointment = ({
-  doctor_id,
-  doctor_name,
-  patient_id,
-  patient_name,
-  ...appointment
-}) => {
+const formatAppointment = (appointment) => {
   return {
-    ...appointment,
+    id: appointment.id,
+    description: appointment.description,
+    numberOfBeds: appointment.numberOfBeds,
+    condition: appointment.condition,
+    date: appointment.date,
     patient: {
-      id: patient_id,
-      name: patient_name,
+      id: appointment.patient_id,
+      name: appointment.patient_name,
     },
     doctor: {
-      id: doctor_id,
-      name: doctor_name,
+      id: appointment.doctor_id,
+      name: appointment.doctor_name,
     },
   };
 };
@@ -27,6 +25,8 @@ const SELECT_COLUMNS = [
   "numberOfBeds",
   "condition",
   "date",
+  "appointment.patient_id",
+  "appointment.doctor_id",
   `${tables.doctor}.id as doctor_id`,
   `${tables.doctor}.name as doctor_name`,
   `${tables.patient}.id as patient_id`,
@@ -107,7 +107,31 @@ const findAllDoctorAppointments = async (userId) => {
   return appointments.map(formatAppointment);
 };
 
-const findById = async (id /*, patientId, doctorId */) => {
+// const findById = async (id /*, patientId, doctorId */) => {
+//   const appointment = await getKnex()(tables.appointment)
+//     .join(
+//       tables.doctor,
+//       `${tables.appointment}.doctor_id`,
+//       "=",
+//       `${tables.doctor}.id`
+//     )
+//     .join(
+//       tables.patient,
+//       `${tables.appointment}.patient_id`,
+//       "=",
+//       `${tables.patient}.id`
+//     )
+//     .where(`${tables.appointment}.id`, id)
+//     // .where(`${tables.appointment}.patient_id`, patientId)
+//     // .where(`${tables.appointment}.doctor_id`, doctorId)
+//     .first(SELECT_COLUMNS);
+
+//   return appointment && formatAppointment(appointment);
+// };
+
+const findById = async (id) => {
+  console.log(`Fetching appointment with id ${id}`);
+
   const appointment = await getKnex()(tables.appointment)
     .join(
       tables.doctor,
@@ -122,8 +146,6 @@ const findById = async (id /*, patientId, doctorId */) => {
       `${tables.patient}.id`
     )
     .where(`${tables.appointment}.id`, id)
-    // .where(`${tables.appointment}.patient_id`, patientId)
-    // .where(`${tables.appointment}.doctor_id`, doctorId)
     .first(SELECT_COLUMNS);
 
   return appointment && formatAppointment(appointment);

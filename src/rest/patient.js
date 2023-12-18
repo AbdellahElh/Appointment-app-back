@@ -62,7 +62,8 @@ register.validationScheme = {
 };
 
 const getPatientById = async (ctx) => {
-  ctx.body = await patientService.getById(ctx.params.id);
+  const { userId, roles } = ctx.state.session;
+  ctx.body = await patientService.getById(ctx.params.id, userId, roles);
 };
 
 getPatientById.validationScheme = {

@@ -35,25 +35,18 @@ const getById = async (id, userId, roles) => {
   if (!appointment) {
     throw ServiceError.notFound(`No appointment with id ${id} exists`, { id });
   }
+  if (roles.includes(Role.PATIENT) && id !== userId && !roles.includes(Role.ADMIN)) {
+    console.log("user roles: ", roles, "user id: ", userId);
 
-  // Check if the user is allowed to view the appointment
-  // if (
-  //   role !== "admin" &&
-  //   ((role === "patient" && userId !== appointment.patientId) ||
-  //     (role === "doctor" && userId !== appointment.doctorId))
-  // )
-  if (
-    (roles.includes(Role.PATIENT) &&
-      id !== userId &&
-      !roles.includes(Role.ADMIN)) ||
-    (roles.includes(Role.DOCTOR) &&
-      id !== userId &&
-      !roles.includes(Role.ADMIN))
-  ) {
     throw ServiceError.forbidden(
       `You are not allowed to view this appointment`,
       { id }
     );
+  }
+
+  if (roles.includes(Role.DOCTOR) && appointment.doctor.id !== userId && !roles.includes(Role.ADMIN)) {
+    console.log("user roles: ", roles, "user id: ", userId, "appointment doctor id: ", appointment.doctor.id);
+    throw ServiceError.forbidden("You are not allowed to view this appointment");
   }
 
   return appointment;
@@ -98,36 +91,43 @@ const updateById = async (
   roles,
   userId
 ) => {
+  // Ensure roles is an array
+  console.log("type of role: ",typeof roles);
+  console.log("roles: ", roles);
+
   const existingPatient = patientId
-    ? await patientService.getById(patientId)
-    : null;
+  ? await patientService.getById(patientId, userId, roles)
+  : null;
   if (!existingPatient) {
     throw ServiceError.notFound(`There is no patient with id ${id}.`, { id });
   }
 
   const existingDoctor = doctorId
-    ? await doctorService.getById(doctorId)
-    : null;
+  ? await doctorService.getById(doctorId, userId, roles)
+  : null;
   if (!existingDoctor) {
     throw ServiceError.notFound(`There is no doctor with id ${id}.`, { id });
   }
 
-  const appointment = await appointmentRepo.findById(id);
+  const appointment = await appointmentRepo.findById(id, patientId, doctorId);
   if (!appointment) {
     throw ServiceError.notFound(`There is no appointment with id ${id}.`, {
       id,
     });
   }
 
-  if (
-    (roles.includes(Role.DOCTOR) && !roles.includes(Role.ADMIN)) ||
-    (roles.includes(Role.PATIENT) &&
-      userId !== patientId &&
-      !roles.includes(Role.ADMIN))
-  ) {
-    throw ServiceError.unauthorized(
-      "You are not authorized to update this appointment."
+  if (roles.includes(Role.PATIENT) && id !== userId && !roles.includes(Role.ADMIN)) {
+    console.log("user roles: ", roles, "user id: ", userId);
+
+    throw ServiceError.forbidden(
+      `You are not allowed to view this appointment`,
+      { id }
     );
+  }
+
+  if (roles.includes(Role.DOCTOR) && appointment.doctor.id !== userId && !roles.includes(Role.ADMIN)) {
+    console.log("user roles: ", roles, "user id: ", userId, "appointment doctor id: ", appointment.doctor.id);
+    throw ServiceError.forbidden("You are not allowed to view this appointment");
   }
 
   try {
@@ -156,6 +156,7 @@ const updateById = async (
     throw handleDBError(error);
   }
 };
+
 const deleteById = async (id, patientId, doctorId) => {
   try {
     const deleted = await appointmentRepo.deleteById(id, patientId, doctorId);
