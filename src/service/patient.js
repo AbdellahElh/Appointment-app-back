@@ -122,14 +122,14 @@ const getAll = async (userId, roles) => {
   };
 };
 
-const getById = async (id, userId, role) => {
+const getById = async (id, userId, roles) => {
   const patient = await patientRepository.findById(id);
 
   if (!patient) {
     throw ServiceError.notFound(`No patient with id ${id} exists`, { id });
   }
 
-  if (role === Role.PATIENT && id !== userId) {
+  if (roles.includes(Role.PATIENT) && id !== userId && !roles.includes(Role.ADMIN)) {
     throw ServiceError.forbidden(
       "You are not allowed to view this patient's information"
     );
@@ -186,10 +186,11 @@ const updateById = async (
   id,
   { email, name, street, number, postalCode, city, birthdate },
   userId,
-  role
+  roles
 ) => {
-  console.log("updateById", id, userId, role);
-  if (role === Role.DOCTOR && !role === Role.ADMIN) {
+  console.log("updateById", id, userId, roles);
+  if (roles.includes(Role.DOCTOR) && !roles.includes(Role.ADMIN)) {
+
     throw ServiceError.forbidden(
       "You are not allowed to update this patient's information"
     );
@@ -211,9 +212,9 @@ const updateById = async (
   }
 };
 
-const deleteById = async (id, userId, role) => {
-  console.log("deleteById", id, userId, role);
-  if (role === Role.DOCTOR) {
+const deleteById = async (id, userId, roles) => {
+  console.log("deleteById", id, userId, roles);
+  if (roles.includes(Role.DOCTOR) && !roles.includes(Role.ADMIN)) {
     throw ServiceError.forbidden(
       "You are not allowed to delete this patient's information"
     );
