@@ -105,11 +105,14 @@ const login = async (email, password) => {
 const getAll = async (userId, roles) => {
   let items = [];
   if (roles.includes(Role.PATIENT) && !roles.includes(Role.ADMIN)) {
+    console.log("patient user roles", roles);
     const patient = await patientRepository.findById(userId);
     items = patient ? [patient] : [];
   } else if (roles.includes(Role.DOCTOR) && !roles.includes(Role.ADMIN)) {
+    console.log("doctor user roles", roles);
     items = await patientRepository.findByDoctorId(userId);
   } else {
+    console.log("admin user roles", roles);
     items = await patientRepository.findAll();
   }
 
