@@ -1,6 +1,6 @@
 module.exports = Object.freeze({
-  PATIENT: "patient",
-  DOCTOR: "doctor",
-  ADMIN: "admin",
-  USER: "user",
+  ADMIN: "ADMIN",
+  DOCTOR: "DOCTOR",
+  PATIENT: "PATIENT",
+  USER: "USER",
 });
