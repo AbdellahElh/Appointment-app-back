@@ -1,6 +1,6 @@
 module.exports = {
   log: {
-    level: "silly",
+    level: "silly", //info
     disabled: false,
   },
   cors: {
