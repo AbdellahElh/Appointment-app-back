@@ -63,6 +63,11 @@ register.validationScheme = {
 
 const getPatientById = async (ctx) => {
   const { userId, roles } = ctx.state.session;
+
+  if (!userId || !roles) {
+    throw new Error('User ID or roles are not defined in the session');
+  }
+
   ctx.body = await patientService.getById(ctx.params.id, userId, roles);
 };
 
@@ -100,7 +105,7 @@ const updatePatientById = async (ctx) => {
       ...ctx.request.body,
     },
     userId,
-    roles[0]
+    roles
   );
   ctx.body = updatedPatient;
 };

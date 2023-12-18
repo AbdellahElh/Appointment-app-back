@@ -125,6 +125,8 @@ const getAll = async (userId, roles) => {
 const getById = async (id, userId, roles) => {
   const patient = await patientRepository.findById(id);
 
+  console.log("getById: id, userId, roles", id, userId, roles); // userId and roles are undefined
+
   if (!patient) {
     throw ServiceError.notFound(`No patient with id ${id} exists`, { id });
   }
@@ -206,7 +208,7 @@ const updateById = async (
       city,
       birthdate,
     });
-    return getById(id);
+    return getById(id, userId, roles);
   } catch (error) {
     throw handleDBError(error);
   }
