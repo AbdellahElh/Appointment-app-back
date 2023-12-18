@@ -17,8 +17,9 @@ const getAll = async (userId, roles) => {
 
     items = await appointmentRepo.findAllDoctorAppointments(userId);
   } else {
-    console.log("admin user roles: ", roles, "user id: ", userId);
-    items = await appointmentRepo.findAllAppointments();
+    // console.log("admin user roles: ", roles, "user id: ", userId);
+    // items = await appointmentRepo.findAllAppointments();
+    throw ServiceError.forbidden("You are not allowed to view this appointment");
   }
 
   return {
