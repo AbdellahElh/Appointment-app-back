@@ -28,12 +28,8 @@ const getAll = async (userId, roles) => {
       ...(await appointmentRepo.findAllDoctorAppointments(userId)),
     ];
   } else {
-    // console.log("admin user roles: ", roles, "user id: ", userId);
-    // items = await appointmentRepo.findAllAppointments();
-    console.log("No matching roles, throwing error");
-    throw ServiceError.forbidden(
-      "You are not allowed to view this appointment"
-    );
+    console.log("admin user roles: ", roles, "user id: ", userId);
+    items = await appointmentRepo.findAllAppointments();
   }
 
   console.log("Returning ", items.length, " items");

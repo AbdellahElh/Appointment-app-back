@@ -116,9 +116,13 @@ const getAll = async (userId, roles) => {
     items = await patientRepository.findAll();
   }
 
+  // Remove duplicates
+  const uniqueItems = Array.from(new Set(items.map(item => item.id)))
+    .map(id => items.find(item => item.id === id));
+
   return {
-    items: items.map(makeExposedPatient),
-    count: items.length,
+    items: uniqueItems.map(makeExposedPatient),
+    count: uniqueItems.length,
   };
 };
 
