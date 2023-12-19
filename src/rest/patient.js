@@ -64,7 +64,7 @@ register.validationScheme = {
 const getPatientById = async (ctx) => {
   const { roles, userId } = ctx.state.session;
 
-  ctx.body = await patientService.getById(ctx.params.id, roles, userId,);
+  ctx.body = await patientService.getById(ctx.params.id, roles, userId);
 };
 
 getPatientById.validationScheme = {
@@ -83,6 +83,7 @@ createPatient.validationScheme = {
   body: Joi.object({
     name: Joi.string(),
     email: Joi.string().email(),
+    password: Joi.string().min(8).max(30),
     street: Joi.string(),
     number: Joi.string(),
     postalCode: Joi.string(),

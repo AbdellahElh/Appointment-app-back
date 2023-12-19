@@ -152,6 +152,7 @@ const getById = async (id, roles, userId) => {
 const create = async ({
   name,
   email,
+  password,
   street,
   number,
   postalCode,
@@ -159,16 +160,22 @@ const create = async ({
   birthdate,
 }) => {
   try {
+    const passwordHash = await hashPassword(password);
+
     const id = await patientRepository.create({
       name,
       email,
+      passwordHash,
+      roles: [Role.PATIENT],
       street,
       number,
       postalCode,
       city,
       birthdate,
     });
-    return getById(id);
+    const patient = await patientRepository.findById(id);
+    console.log("User created:", patient);
+    return getById(id, patient.roles, patient.id);
   } catch (error) {
     throw handleDBError(error);
   }
@@ -197,9 +204,9 @@ const updateById = async (
   id,
   { email, name, street, number, postalCode, city, birthdate },
   userId,
-  roles
+  roles,
 ) => {
-  console.log("updateById", id, userId, roles);
+  console.log("updateById; id, roles, userId", id, roles, userId);
   if (roles.includes(Role.DOCTOR) && !roles.includes(Role.ADMIN)) {
     throw ServiceError.forbidden(
       "You are not allowed to update this patient's information"
@@ -216,7 +223,7 @@ const updateById = async (
       city,
       birthdate,
     });
-    return getById(id, userId, roles);
+    return getById(id, roles, userId);
   } catch (error) {
     throw handleDBError(error);
   }

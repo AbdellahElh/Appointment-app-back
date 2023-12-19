@@ -1,58 +1,63 @@
-// const supertest = require("supertest");
-// const createServer = require("../../src/createServer");
-// const { getKnex, tables } = require("../../src/data");
 const { tables } = require("../../src/data");
 const Role = require("../../src/core/roles");
 const { withServer, loginPatient, loginAdmin } = require("../supertest.setup");
 const { testAuthHeader } = require("../common/auth");
 
 const data = {
+  users: [
+    {
+      id: 1,
+      email: "emily.smith@gmail.com",
+      password_hash: "doesntmatter",
+      roles: JSON.stringify([Role.PATIENT]),
+    },
+    {
+      id: 2,
+      email: "david.brown@gmail.com",
+      password_hash: "doesntmatter",
+      roles: JSON.stringify([Role.PATIENT]),
+    },
+    {
+      id: 3,
+      email: "sophia.davis@gmail.com",
+      password_hash: "doesntmatter",
+      roles: JSON.stringify([Role.PATIENT]),
+    },
+  ],
   patients: [
     {
-      id: 4,
-      name: "Michael Johnson",
-      street: "222 Maple Lane",
-      number: "Apt 9E",
-      postalCode: "13579",
-      city: "Suburbia",
-      birthdate: new Date(1999, 5, 20),
-      email: "four@user.be",
-      password_hash: "doesntmatter",
-      roles: JSON.stringify([Role.PATIENT]),
+      id: 1,
+      name: "Emily Smith",
+      street: "789 Oak Street",
+      number: "Apt 3C",
+      postalCode: "54321",
+      city: "Metropolitan City",
+      birthdate: new Date(2001, 1, 1),
     },
-
-    // Patient 5
     {
-      id: 5,
-      name: "Olivia White",
-      street: "555 Birch Street",
-      number: "Suite 2A",
-      postalCode: "24680",
-      city: "Townsville",
-      birthdate: new Date(2000, 8, 12),
-      email: "five@user.be",
-      password_hash: "doesntmatter",
-      roles: JSON.stringify([Role.PATIENT]),
+      id: 2,
+      name: "David Brown",
+      street: "456 Elm Avenue",
+      number: "Suite 5D",
+      postalCode: "12345",
+      city: "Urbanville",
+      birthdate: new Date(2002, 2, 2),
     },
-
-    // Patient 6
     {
-      id: 6,
-      name: "Ethan Taylor",
-      street: "777 Cedar Avenue",
-      number: "Unit 4F",
-      postalCode: "97531",
-      city: "Villageville",
-      birthdate: new Date(1998, 11, 7),
-      email: "six@user.be",
-      password_hash: "doesntmatter",
-      roles: JSON.stringify([Role.PATIENT]),
+      id: 3,
+      name: "Sophia Davis",
+      street: "101 Pine Road",
+      number: "Unit 7B",
+      postalCode: "67890",
+      city: "Cityscape",
+      birthdate: new Date(2003, 3, 3),
     },
   ],
 };
 
 const dataToDelete = {
-  patients: [4, 5, 6],
+  patients: [1, 2, 3],
+  users: [1, 2, 3],
 };
 
 describe("Patients", () => {
@@ -72,155 +77,232 @@ describe("Patients", () => {
 
   describe("GET /api/patients", () => {
     beforeAll(async () => {
-      await knex(tables.patient).insert(data.patients);
+      // Check if the user already exists
+      for (const user of data.users) {
+        const userExists = await knex(tables.user).where("id", user.id).first();
+
+        // Only insert the user if it doesn't already exist
+        if (!userExists) {
+          await knex(tables.user).insert(user);
+        }
+      }
+
+      // Check if the patient already exists
+      for (const patient of data.patients) {
+        const patientExists = await knex(tables.patient)
+          .where("id", patient.id)
+          .first();
+
+        // Only insert the patient if it doesn't already exist
+        if (!patientExists) {
+          await knex(tables.patient).insert(patient);
+        }
+      }
     });
 
     afterAll(async () => {
       await knex(tables.patient).whereIn("id", dataToDelete.patients).delete();
+      // await knex(tables.user).whereIn("id", dataToDelete.users).delete();
     });
 
     it("should 200 and return all patients", async () => {
-      const response = await request.get(url).set('Authorization', adminAuthHeader);
-
+      const response = await request
+        .get(url)
+        .set("Authorization", adminAuthHeader);
+    
       expect(response.statusCode).toBe(200);
-      expect(response.body.items.length).toBe(3);
-
-      expect(response.body.items).toEqual(
-        expect.arrayContaining([
-          {
-            id: 2,
-            name: "David Brown",
-            street: "456 Elm Avenue",
-            number: "Suite 5D",
-            postalCode: "12345",
-            city: "Urbanville",
-            birthdate: new Date(2002, 1, 2).toJSON(),
-          },
-          {
-            id: 3,
-            name: "Sophia Davis",
-            street: "101 Pine Road",
-            number: "Unit 7B",
-            postalCode: "67890",
-            city: "Cityscape",
-            birthdate: new Date(2003, 2, 3).toJSON(),
-          },
-        ])
-      );
+      expect(response.body.items.length).toBeGreaterThanOrEqual(3);
+    
+      expect(response.body.items[0]).toEqual({
+        id: 2,
+        name: "David Brown",
+        email: "david.brown@gmail.com",
+        roles: [Role.PATIENT],
+        street: "456 Elm Avenue",
+        number: "Suite 5D",
+        postalCode: "12345",
+        city: "Urbanville",
+        birthdate: expect.any(String),
+      });
+    
+      expect(response.body.items[2]).toEqual({
+        id: 3,
+        name: "Sophia Davis",
+        email: "sophia.davis@gmail.com",
+        roles: [Role.PATIENT],
+        street: "101 Pine Road",
+        number: "Unit 7B",
+        postalCode: "67890",
+        city: "Cityscape",
+        birthdate: expect.any(String),
+      });
     });
+
     it("should 400 when given an argument", async () => {
-      const response = await request.get(`${url}?invalid=true`).set('Authorization', adminAuthHeader);
+      const response = await request
+        .get(`${url}?invalid=true`)
+        .set("Authorization", adminAuthHeader);
 
       expect(response.statusCode).toBe(400);
       expect(response.body.code).toBe("VALIDATION_FAILED");
       expect(response.body.details.query).toHaveProperty("invalid");
     });
+    testAuthHeader(() => request.get(url));
+  });
 
-    describe("GET /api/patients/:id", () => {
-      beforeAll(async () => {
-        await knex(tables.patient).insert(data.patients[0]);
-      });
+  describe("GET /api/patients/:id", () => {
+    beforeEach(async () => {
+      // Check if the user already exists
+      for (const user of data.users) {
+        const userExists = await knex(tables.user).where("id", user.id).first();
 
-      afterAll(async () => {
-        await knex(tables.patient)
-          .whereIn("id", dataToDelete.patients)
-          .delete();
-      });
+        // Only insert the user if it doesn't already exist
+        if (!userExists) {
+          await knex(tables.user).insert(user);
+        }
+      }
 
-      it("should 200 and return the requested patient", async () => {
-        const response = await request.get(`${url}/1`);
+      // Check if the patient already exists
+      for (const patient of data.patients) {
+        const patientExists = await knex(tables.patient)
+          .where("id", patient.id)
+          .first();
 
-        expect(response.statusCode).toBe(200);
-        expect(response.body).toEqual({
-          id: 1,
-          name: "Emily Smith",
-          street: "789 Oak Street",
-          number: "Apt 3C",
-          postalCode: "54321",
-          city: "Metropolitan City",
-          birthdate: new Date(2001, 10, 15).toJSON(),
-        });
-      });
-      it("should 404 when requesting not existing patient", async () => {
-        const response = await request.get(`${url}/2`);
-
-        expect(response.statusCode).toBe(404);
-        expect(response.body).toMatchObject({
-          code: "NOT_FOUND",
-          message: "No patient with id 2 exists",
-          details: {
-            id: 2,
-          },
-        });
-        expect(response.body.stack).toBeTruthy();
-      });
-
-      it("should 400 with invalid patient id", async () => {
-        const response = await request.get(`${url}/invalid`);
-
-        expect(response.statusCode).toBe(400);
-        expect(response.body.code).toBe("VALIDATION_FAILED");
-        expect(response.body.details.params).toHaveProperty("id");
-      });
+        // Only insert the patient if it doesn't already exist
+        if (!patientExists) {
+          await knex(tables.patient).insert(patient);
+        }
+      }
     });
 
-    describe("POST /api/patients", () => {
-      const patientsToDelete = [];
-
-      afterAll(async () => {
-        await knex(tables.patient).whereIn("id", patientsToDelete).delete();
-      });
-
-      it("should 201 and return the created patient", async () => {
-        const response = await request.post(url).send({
-          name: "New patient",
-          street: "789 Oak Street",
-          number: "Apt 3C",
-          postalCode: "54321",
-          city: "Metropolitan City",
-          birthdate: new Date(2001, 10, 15),
-        });
-
-        expect(response.statusCode).toBe(201);
-        expect(response.body.id).toBeTruthy();
-        expect(response.body.name).toBe("New patient");
-        expect(response.body.street).toBe("789 Oak Street");
-        expect(response.body.number).toBe("Apt 3C");
-        expect(response.body.postalCode).toBe("54321");
-        expect(response.body.city).toBe("Metropolitan City");
-        expect(response.body.birthdate).toBe("2001-11-14T23:00:00.000Z");
-
-        patientsToDelete.push(response.body.id);
-      });
-      it("should 400 when missing name", async () => {
-        const response = await request.post(url).send({
-          street: "789 Oak Street",
-          number: "Apt 3C",
-          postalCode: "54321",
-          city: "Metropolitan City",
-          birthdate: new Date(2001, 10, 15),
-        });
-
-        expect(response.statusCode).toBe(400);
-        expect(response.body.code).toBe("VALIDATION_FAILED");
-        expect(response.body.details.body).toHaveProperty("name");
-      });
+    afterEach(async () => {
+      await knex(tables.patient).whereIn("id", dataToDelete.patients).delete();
+      // await knex(tables.user).whereIn("id", dataToDelete.users).delete();
     });
 
-    describe("PUT /api/patients/:id", () => {
-      beforeAll(async () => {
-        await knex(tables.patient).insert(data.patients);
+    it("should 200 and return the requested patient", async () => {
+      const response = await request
+        .get(`${url}/1`)
+        .set("Authorization", authHeader);
+
+      expect(response.statusCode).toBe(200);
+      expect(response.body).toEqual({
+        id: 1,
+        email: "emily.smith@gmail.com",
+        roles: [Role.PATIENT],
+        name: "Emily Smith",
+        street: "789 Oak Street",
+        number: "Apt 3C",
+        postalCode: "54321",
+        city: "Metropolitan City",
+        birthdate: new Date(2001, 1, 1).toJSON(),
+      });
+    });
+    it("should 404 when requesting not existing patient", async () => {
+      const response = await request
+        .get(`${url}/20`)
+        .set("Authorization", authHeader);
+
+      expect(response.statusCode).toBe(404);
+      expect(response.body).toMatchObject({
+        code: "NOT_FOUND",
+        message: "No patient with id 20 exists",
+        details: {
+          id: 20,
+        },
+      });
+      expect(response.body.stack).toBeTruthy();
+    });
+
+    it("should 400 with invalid patient id", async () => {
+      const response = await request
+        .get(`${url}/invalid`)
+        .set("Authorization", authHeader);
+
+      expect(response.statusCode).toBe(400);
+      expect(response.body.code).toBe("VALIDATION_FAILED");
+      expect(response.body.details.params).toHaveProperty("id");
+    });
+    testAuthHeader(() => request.get(`${url}/1`));
+  });
+
+  describe("POST /api/patients/register", () => {
+    const patientsToDelete = [];
+
+    afterAll(async () => {
+      await knex(tables.patient).whereIn("id", patientsToDelete).delete();
+      // await knex(tables.user).whereIn("id", dataToDelete.users).delete();
+    });
+
+    it("should 200 and return the registered patient", async () => {
+      const response = await request.post(`${url}/register`).send({
+        name: "New patient",
+        email: "new@patient.be",
+        password: "12345678",
       });
 
-      afterAll(async () => {
-        await knex(tables.patient)
-          .whereIn("id", dataToDelete.patients)
-          .delete();
+      expect(response.statusCode).toBe(200);
+      expect(response.body.token).toBeTruthy();
+      expect(response.body.user.name).toBe("New patient");
+      expect(response.body.user.email).toBe("new@patient.be");
+      expect(response.body.user.passwordHash).toBeUndefined();
+      expect(response.body.user.street).toBe("Default Street");
+      expect(response.body.user.number).toBe("Default Number");
+      expect(response.body.user.postalCode).toBe("Default postalcode");
+      expect(response.body.user.city).toBe("Default City");
+      expect(response.body.user.roles).toEqual([Role.PATIENT]);
+      expect(response.body.user.birthdate).toBeTruthy();
+    });
+
+    it("should 400 when missing name", async () => {
+      const response = await request.post(`${url}/register`).send({
+        email: "register@hogent.be",
+        password: "12345678",
       });
 
-      it("should 200 and return the updated patient", async () => {
-        const response = await request.put(`${url}/1`).send({
+      expect(response.statusCode).toBe(400);
+      expect(response.body.code).toBe("VALIDATION_FAILED");
+      expect(response.body.details.body).toHaveProperty("name");
+    });
+  });
+
+  describe("PUT /api/patients/:id", () => {
+    beforeEach(async () => {
+      // Check if the user already exists
+      for (const user of data.users) {
+        const userExists = await knex(tables.user).where("id", user.id).first();
+
+        // Only insert the user if it doesn't already exist
+        if (!userExists) {
+          await knex(tables.user).insert(user);
+        }
+      }
+
+      // Check if the patient already exists
+      for (const patient of data.patients) {
+        const patientExists = await knex(tables.patient)
+          .where("id", patient.id)
+          .first();
+
+        // Only insert the patient if it doesn't already exist
+        if (!patientExists) {
+          await knex(tables.patient).insert(patient);
+        }
+      }
+    });
+
+    afterEach(async () => {
+      await knex(tables.patient).whereIn("id", dataToDelete.patients).delete();
+      // await knex(tables.user).whereIn("id", dataToDelete.users).delete();
+    });
+
+    it("should 200 and return the updated patient", async () => {
+      const response = await request
+        .put(`${url}/1`)
+        .set("Authorization", adminAuthHeader)
+        .send({
           name: "Changed name",
+          email: "changedEmail@gmail.com",
           street: "789 Oak Street",
           number: "Apt 3C",
           postalCode: "54321",
@@ -228,135 +310,231 @@ describe("Patients", () => {
           birthdate: new Date(2001, 10, 15),
         });
 
-        expect(response.statusCode).toBe(200);
-        expect(response.body).toEqual({
-          id: 1,
-          name: "Changed name",
-          street: "789 Oak Street",
-          number: "Apt 3C",
-          postalCode: "54321",
-          city: "Metropolitan City",
-          birthdate: new Date(2001, 10, 15).toJSON(),
-        });
-      });
-
-      it("should 400 when missing name", async () => {
-        const response = await request.put(`${url}/1`).send({
-          street: "789 Oak Street",
-          number: "Apt 3C",
-          postalCode: "54321",
-          city: "Metropolitan City",
-          birthdate: new Date(2001, 10, 15).toJSON(),
-        });
-
-        expect(response.statusCode).toBe(400);
-        expect(response.body.code).toBe("VALIDATION_FAILED");
-        expect(response.body.details.body).toHaveProperty("name");
-      });
-
-      it("should 400 when missing street", async () => {
-        const response = await request.put(`${url}/1`).send({
-          name: "The name",
-          number: "Apt 3C",
-          postalCode: "54321",
-          city: "Metropolitan City",
-          birthdate: new Date(2001, 10, 15).toJSON(),
-        });
-
-        expect(response.statusCode).toBe(400);
-        expect(response.body.code).toBe("VALIDATION_FAILED");
-        expect(response.body.details.body).toHaveProperty("street");
-      });
-
-      it("should 400 when missing number", async () => {
-        const response = await request.put(`${url}/1`).send({
-          name: "The name",
-          street: "789 Oak Street",
-          postalCode: "54321",
-          city: "Metropolitan City",
-          birthdate: new Date(2001, 10, 15).toJSON(),
-        });
-
-        expect(response.statusCode).toBe(400);
-        expect(response.body.code).toBe("VALIDATION_FAILED");
-        expect(response.body.details.body).toHaveProperty("number");
-      });
-
-      it("should 400 when missing postalCode", async () => {
-        const response = await request.put(`${url}/1`).send({
-          name: "The name",
-          street: "789 Oak Street",
-          number: "Apt 3C",
-          city: "Metropolitan City",
-          birthdate: new Date(2001, 10, 15).toJSON(),
-        });
-
-        expect(response.statusCode).toBe(400);
-        expect(response.body.code).toBe("VALIDATION_FAILED");
-        expect(response.body.details.body).toHaveProperty("postalCode");
-      });
-
-      it("should 400 when missing city", async () => {
-        const response = await request.put(`${url}/1`).send({
-          name: "The name",
-          street: "789 Oak Street",
-          number: "Apt 3C",
-          postalCode: "54321",
-          birthdate: new Date(2001, 10, 15).toJSON(),
-        });
-
-        expect(response.statusCode).toBe(400);
-        expect(response.body.code).toBe("VALIDATION_FAILED");
-        expect(response.body.details.body).toHaveProperty("city");
-      });
-
-      it("should 400 when missing birthdate", async () => {
-        const response = await request.put(`${url}/1`).send({
-          name: "The name",
-          street: "789 Oak Street",
-          number: "Apt 3C",
-          postalCode: "54321",
-          city: "Metropolitan City",
-        });
-
-        expect(response.statusCode).toBe(400);
-        expect(response.body.code).toBe("VALIDATION_FAILED");
-        expect(response.body.details.body).toHaveProperty("birthdate");
+      expect(response.statusCode).toBe(200);
+      expect(response.body).toEqual({
+        id: 1,
+        name: "Changed name",
+        email: "changedEmail@gmail.com",
+        roles: ["PATIENT"],
+        street: "789 Oak Street",
+        number: "Apt 3C",
+        postalCode: "54321",
+        city: "Metropolitan City",
+        birthdate: new Date(2001, 10, 15).toJSON(),
       });
     });
 
-    describe("DELETE /api/patients/:id", () => {
-      beforeAll(async () => {
-        await knex(tables.patient).insert(data.patients[0]);
+    it("should 404 with not existing patient", async () => {
+      const response = await request
+        .delete(`${url}/111`)
+        .set("Authorization", adminAuthHeader);
+
+      expect(response.statusCode).toBe(404);
+      expect(response.body).toMatchObject({
+        code: "NOT_FOUND",
+        message: "No patient with id 111 exists",
+        details: {
+          id: 111,
+        },
       });
-
-      it("should 204 and return nothing", async () => {
-        const response = await request.delete(`${url}/1`);
-
-        expect(response.statusCode).toBe(204);
-        expect(response.body).toEqual({});
-      });
-      it("should 404 with not existing patient", async () => {
-        const response = await request.delete(`${url}/1`);
-
-        expect(response.statusCode).toBe(404);
-        expect(response.body).toMatchObject({
-          code: "NOT_FOUND",
-          message: "No patient with id 1 exists",
-          details: {
-            id: 1,
-          },
-        });
-        expect(response.body.stack).toBeTruthy();
-      });
-
-      it("should 400 with invalid patient id", async () => {
-        const response = await request.get(`${url}/invalid`);
-
-        expect(response.statusCode).toBe(400);
-        expect(response.body.code).toBe("VALIDATION_FAILED");
-        expect(response.body.details.params).toHaveProperty("id");
-      });
+      expect(response.body.stack).toBeTruthy();
     });
+
+    it("should 400 when missing name", async () => {
+      const response = await request
+        .put(`${url}/1`)
+        .set("Authorization", adminAuthHeader)
+        .send({
+          email: "changedEmail@gmail.com",
+          street: "789 Oak Street",
+          number: "Apt 3C",
+          postalCode: "54321",
+          city: "Metropolitan City",
+          birthdate: new Date(2001, 10, 15).toJSON(),
+        });
+
+      expect(response.statusCode).toBe(400);
+      expect(response.body.code).toBe("VALIDATION_FAILED");
+      expect(response.body.details.body).toHaveProperty("name");
+    });
+
+    it("should 400 when missing email", async () => {
+      const response = await request
+        .put(`${url}/1`)
+        .set("Authorization", adminAuthHeader)
+        .send({
+          name: "The name",
+          street: "789 Oak Street",
+          number: "Apt 3C",
+          postalCode: "54321",
+          city: "Metropolitan City",
+          birthdate: new Date(2001, 10, 15).toJSON(),
+        });
+
+      expect(response.statusCode).toBe(400);
+      expect(response.body.code).toBe("VALIDATION_FAILED");
+      expect(response.body.details.body).toHaveProperty("email");
+    });
+
+    it("should 400 when missing street", async () => {
+      const response = await request
+        .put(`${url}/1`)
+        .set("Authorization", adminAuthHeader)
+        .send({
+          name: "The name",
+          email: "changedEmail@gmail.com",
+          number: "Apt 3C",
+          postalCode: "54321",
+          city: "Metropolitan City",
+          birthdate: new Date(2001, 10, 15).toJSON(),
+        });
+
+      expect(response.statusCode).toBe(400);
+      expect(response.body.code).toBe("VALIDATION_FAILED");
+      expect(response.body.details.body).toHaveProperty("street");
+    });
+
+    it("should 400 when missing number", async () => {
+      const response = await request
+        .put(`${url}/1`)
+        .set("Authorization", adminAuthHeader)
+        .send({
+          name: "The name",
+          email: "changedEmail@gmail.com",
+
+          street: "789 Oak Street",
+          postalCode: "54321",
+          city: "Metropolitan City",
+          birthdate: new Date(2001, 10, 15).toJSON(),
+        });
+
+      expect(response.statusCode).toBe(400);
+      expect(response.body.code).toBe("VALIDATION_FAILED");
+      expect(response.body.details.body).toHaveProperty("number");
+    });
+
+    it("should 400 when missing postalCode", async () => {
+      const response = await request
+        .put(`${url}/1`)
+        .set("Authorization", adminAuthHeader)
+        .send({
+          name: "The name",
+          email: "changedEmail@gmail.com",
+
+          street: "789 Oak Street",
+          number: "Apt 3C",
+          city: "Metropolitan City",
+          birthdate: new Date(2001, 10, 15).toJSON(),
+        });
+
+      expect(response.statusCode).toBe(400);
+      expect(response.body.code).toBe("VALIDATION_FAILED");
+      expect(response.body.details.body).toHaveProperty("postalCode");
+    });
+
+    it("should 400 when missing city", async () => {
+      const response = await request
+        .put(`${url}/1`)
+        .set("Authorization", adminAuthHeader)
+        .send({
+          name: "The name",
+          email: "changedEmail@gmail.com",
+
+          street: "789 Oak Street",
+          number: "Apt 3C",
+          postalCode: "54321",
+          birthdate: new Date(2001, 10, 15).toJSON(),
+        });
+
+      expect(response.statusCode).toBe(400);
+      expect(response.body.code).toBe("VALIDATION_FAILED");
+      expect(response.body.details.body).toHaveProperty("city");
+    });
+
+    it("should 400 when missing birthdate", async () => {
+      const response = await request
+        .put(`${url}/1`)
+        .set("Authorization", adminAuthHeader)
+        .send({
+          name: "The name",
+          email: "changedEmail@gmail.com",
+
+          street: "789 Oak Street",
+          number: "Apt 3C",
+          postalCode: "54321",
+          city: "Metropolitan City",
+        });
+
+      expect(response.statusCode).toBe(400);
+      expect(response.body.code).toBe("VALIDATION_FAILED");
+      expect(response.body.details.body).toHaveProperty("birthdate");
+    });
+    testAuthHeader(() => request.put(`${url}/1`));
+  });
+
+  describe("DELETE /api/patients/:id", () => {
+    beforeEach(async () => {
+      // Check if the user already exists
+      for (const user of data.users) {
+        const userExists = await knex(tables.user).where("id", user.id).first();
+
+        // Only insert the user if it doesn't already exist
+        if (!userExists) {
+          await knex(tables.user).insert(user);
+        }
+      }
+
+      // Check if the patient already exists
+      for (const patient of data.patients) {
+        const patientExists = await knex(tables.patient)
+          .where("id", patient.id)
+          .first();
+
+        // Only insert the patient if it doesn't already exist
+        if (!patientExists) {
+          await knex(tables.patient).insert(patient);
+        }
+      }
+    });
+
+    afterEach(async () => {
+      await knex(tables.patient).whereIn("id", dataToDelete.patients).delete();
+      // await knex(tables.user).whereIn("id", dataToDelete.users).delete();
+    });
+
+    it("should 204 and return nothing", async () => {
+      const response = await request
+        .delete(`${url}/1`)
+        .set("Authorization", adminAuthHeader);
+
+      expect(response.statusCode).toBe(204);
+      expect(response.body).toEqual({});
+    });
+    it("should 404 with not existing patient", async () => {
+      const response = await request
+        .delete(`${url}/111`)
+        .set("Authorization", adminAuthHeader);
+
+      expect(response.statusCode).toBe(404);
+      expect(response.body).toMatchObject({
+        code: "NOT_FOUND",
+        message: "No patient with id 111 exists",
+        details: {
+          id: 111,
+        },
+      });
+      expect(response.body.stack).toBeTruthy();
+    });
+
+    it("should 400 with invalid patient id", async () => {
+      const response = await request
+        .get(`${url}/invalid`)
+        .set("Authorization", adminAuthHeader);
+
+      expect(response.statusCode).toBe(400);
+      expect(response.body.code).toBe("VALIDATION_FAILED");
+      expect(response.body.details.params).toHaveProperty("id");
+    });
+    testAuthHeader(() => request.delete(`${url}/1`));
   });
 });

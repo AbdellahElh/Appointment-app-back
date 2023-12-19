@@ -53,13 +53,13 @@ const create = async ({
   roles,
   name,
   speciality,
-  numberOfPatients,
+  // numberOfPatients,
   photo,
   hospital,
-  numberOfRatings,
-  rating,
+  // numberOfRatings,
+  // rating,
   about,
-  timeSlots,
+  // timeSlots,
 }) => {
   try {
     const [userId] = await getKnex()(tables.user)
@@ -74,13 +74,13 @@ const create = async ({
       id: userId,
       name,
       speciality,
-      numberOfPatients,
+      // numberOfPatients,
       photo,
       hospital,
-      numberOfRatings,
-      rating,
+      // numberOfRatings,
+      // rating,
       about,
-      timeSlots: JSON.stringify(timeSlots),
+      // timeSlots: JSON.stringify(timeSlots),
     });
 
     return userId;
@@ -105,14 +105,6 @@ const register = async ({ name, email, passwordHash, roles }) => {
     await getKnex()(tables.doctor).insert({
       id: userId,
       name,
-      // speciality: "Default Speciality",
-      // numberOfPatients: 0,
-      // photo: "https://i.imgur.com/2WZtVXx.png",
-      // hospital: "Default Hospital",
-      // numberOfRatings: 0,
-      // rating: 0,
-      // about: "Default About",
-      // timeSlots: JSON.stringify([]),
     });
 
     return userId;
@@ -132,13 +124,13 @@ const updateById = async (
     passwordHash,
     roles,
     speciality,
-    numberOfPatients,
+    // numberOfPatients,
     photo,
     hospital,
-    numberOfRatings,
-    rating,
+    // numberOfRatings,
+    // rating,
     about,
-    timeSlots,
+    // timeSlots,
   }
 ) => {
   try {
@@ -155,13 +147,13 @@ const updateById = async (
       .update({
         name,
         speciality,
-        numberOfPatients,
+        // numberOfPatients,
         photo,
         hospital,
-        numberOfRatings,
-        rating,
+        // numberOfRatings,
+        // rating,
         about,
-        timeSlots: JSON.stringify(timeSlots),
+        // timeSlots: JSON.stringify(timeSlots),
       })
       .where("id", id);
 
@@ -200,4 +192,3 @@ module.exports = {
   deleteById,
 };
 
-// 4otY7oR55hm2Co5AWSRl

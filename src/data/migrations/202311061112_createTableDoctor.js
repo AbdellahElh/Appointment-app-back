@@ -10,14 +10,14 @@ module.exports = {
         .string("speciality", 255)
         .notNullable()
         .defaultTo("Default Speciality");
-      table.integer("numberOfPatients").unsigned().defaultTo(0);
+      // table.integer("numberOfPatients").unsigned().defaultTo(0);
       table.string("photo", 255).defaultTo("https://i.imgur.com/2WZtVXx.png");
 
       table.string("hospital", 255).defaultTo("Default Hospital");
-      table.integer("numberOfRatings").unsigned().defaultTo(0);
-      table.string("rating", 255).defaultTo(0);
+      // table.integer("numberOfRatings").unsigned().defaultTo(0);
+      // table.string("rating", 255).defaultTo(0);
       table.text("about").defaultTo("Default About");
-      table.json("timeSlots");
+      // table.json("timeSlots");
 
       table
         .foreign("id", "fk_doctor_user")

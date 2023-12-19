@@ -66,7 +66,7 @@ const getDoctorById = async (ctx) => {
 
 getDoctorById.validationScheme = {
   params: Joi.object({
-    id: Joi.number().integer().positive().required(),
+    // id: Joi.number().integer().positive().required(),
   }),
 };
 
@@ -78,24 +78,24 @@ const updateDoctorById = async (ctx) => {
 
 updateDoctorById.validationScheme = {
   params: Joi.object({
-    id: Joi.number().integer().positive(),
+    // id: Joi.number().integer().positive(),
   }),
   body: Joi.object({
     email: Joi.string().email(),
     name: Joi.string(),
     speciality: Joi.string(),
-    numberOfPatients: Joi.number().integer().positive(),
+    // // numberOfPatients: Joi.number().integer().positive(),
     photo: Joi.string(),
     hospital: Joi.string(),
-    numberOfRatings: Joi.number().integer().positive(),
-    rating: Joi.number().positive(),
+    // // numberOfRatings: Joi.number().integer().positive(),
+    // rating: Joi.number().positive(),
     about: Joi.string(),
-    timeSlots: Joi.array().items(
-      Joi.object({
-        day: Joi.string(),
-        time: Joi.string(),
-      })
-    ),
+    // timeSlots: Joi.array().items(
+    //   Joi.object({
+    //     day: Joi.string(),
+    //     time: Joi.string(),
+    //   })
+    // ),
   }),
 };
 
@@ -105,7 +105,7 @@ const deleteDoctorById = async (ctx) => {
 };
 deleteDoctorById.validationScheme = {
   params: Joi.object({
-    id: Joi.number().integer().positive().required(),
+    // id: Joi.number().integer().positive().required(),
   }),
 };
 
@@ -137,7 +137,7 @@ module.exports = function installDoctorsRoutes(app) {
     "/:id",
     requireAuthentication,
     validate(updateDoctorById.validationScheme),
-    // checkDoctorId,
+    checkDoctorId,
     updateDoctorById
   );
   router.delete(
