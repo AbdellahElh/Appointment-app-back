@@ -200,15 +200,15 @@ describe("Patients", () => {
     });
     it("should 404 when requesting not existing patient", async () => {
       const response = await request
-        .get(`${url}/20`)
+        .get(`${url}/200`)
         .set("Authorization", authHeader);
 
       expect(response.statusCode).toBe(404);
       expect(response.body).toMatchObject({
         code: "NOT_FOUND",
-        message: "No patient with id 20 exists",
+        message: "No patient with id 200 exists",
         details: {
-          id: 20,
+          id: 200,
         },
       });
       expect(response.body.stack).toBeTruthy();

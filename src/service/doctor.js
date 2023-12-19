@@ -15,26 +15,18 @@ const makeExposedDoctor = ({
   roles,
   name,
   speciality,
-  // numberOfPatients,
   photo,
   hospital,
-  // numberOfRatings,
-  // rating,
   about,
-  // timeSlots,
 }) => ({
   id,
   email,
   roles,
   name,
   speciality,
-  // numberOfPatients,
   photo,
   hospital,
-  // numberOfRatings,
-  // rating,
   about,
-  // timeSlots,
 });
 
 const makeLoginData = async (doctor) => {
@@ -136,31 +128,16 @@ const register = async ({ name, email, password }) => {
 
 const updateById = async (
   id,
-  {
-    email,
-    name,
-    speciality,
-    // numberOfPatients,
-    photo,
-    hospital,
-    // numberOfRatings,
-    // rating,
-    about,
-    // timeSlots,
-  }
+  { email, name, speciality, photo, hospital, about }
 ) => {
   try {
     await doctorRepository.updateById(id, {
       email,
       name,
       speciality,
-      // numberOfPatients,
       photo,
       hospital,
-      // numberOfRatings,
-      // rating,
       about,
-      // timeSlots,
     });
     return getById(id);
   } catch (error) {
@@ -186,7 +163,6 @@ module.exports = {
   login,
   getAll,
   getById,
-  // create,
   register,
   updateById,
   deleteById,

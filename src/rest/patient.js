@@ -15,7 +15,6 @@ const checkPatientId = (ctx, next) => {
     return next();
   }
 
-  // users can only access their own data
   if (id !== userId && !roles.includes(Role.ADMIN)) {
     return ctx.throw(
       403,

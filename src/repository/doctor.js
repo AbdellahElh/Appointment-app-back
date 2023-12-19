@@ -16,7 +16,7 @@ const SELECT_COLUMNS = [
   `${tables.user}.id as doctorId`,
   `${tables.user}.email`,
   `${tables.user}.roles`,
-  `${tables.doctor}.*`, // Include all other columns from the doctor table
+  `${tables.doctor}.*`,
 ];
 
 const findAll = async () => {
@@ -53,13 +53,9 @@ const create = async ({
   roles,
   name,
   speciality,
-  // numberOfPatients,
   photo,
   hospital,
-  // numberOfRatings,
-  // rating,
   about,
-  // timeSlots,
 }) => {
   try {
     const [userId] = await getKnex()(tables.user)
@@ -74,13 +70,9 @@ const create = async ({
       id: userId,
       name,
       speciality,
-      // numberOfPatients,
       photo,
       hospital,
-      // numberOfRatings,
-      // rating,
       about,
-      // timeSlots: JSON.stringify(timeSlots),
     });
 
     return userId;
@@ -118,20 +110,7 @@ const register = async ({ name, email, passwordHash, roles }) => {
 
 const updateById = async (
   id,
-  {
-    name,
-    email,
-    passwordHash,
-    roles,
-    speciality,
-    // numberOfPatients,
-    photo,
-    hospital,
-    // numberOfRatings,
-    // rating,
-    about,
-    // timeSlots,
-  }
+  { name, email, passwordHash, roles, speciality, photo, hospital, about }
 ) => {
   try {
     await getKnex()(tables.user)
@@ -147,13 +126,9 @@ const updateById = async (
       .update({
         name,
         speciality,
-        // numberOfPatients,
         photo,
         hospital,
-        // numberOfRatings,
-        // rating,
         about,
-        // timeSlots: JSON.stringify(timeSlots),
       })
       .where("id", id);
 
@@ -191,4 +166,3 @@ module.exports = {
   updateById,
   deleteById,
 };
-

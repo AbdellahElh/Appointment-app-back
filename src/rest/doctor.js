@@ -11,12 +11,10 @@ const checkDoctorId = (ctx, next) => {
   const { userId, roles } = ctx.state.session;
   const { id } = ctx.params;
 
-  // Admins can access any user's information
   if (roles.includes(Role.ADMIN)) {
     return next();
   }
 
-  // users can only access their own data
   if (id !== userId && !roles.includes(Role.ADMIN)) {
     return ctx.throw(
       403,
@@ -66,7 +64,7 @@ const getDoctorById = async (ctx) => {
 
 getDoctorById.validationScheme = {
   params: Joi.object({
-    // id: Joi.number().integer().positive().required(),
+    id: Joi.number().integer().positive(),
   }),
 };
 
@@ -77,25 +75,14 @@ const updateDoctorById = async (ctx) => {
 };
 
 updateDoctorById.validationScheme = {
-  params: Joi.object({
-    // id: Joi.number().integer().positive(),
-  }),
+  params: Joi.object({ id: Joi.number().integer().positive() }),
   body: Joi.object({
     email: Joi.string().email(),
     name: Joi.string(),
     speciality: Joi.string(),
-    // // numberOfPatients: Joi.number().integer().positive(),
     photo: Joi.string(),
     hospital: Joi.string(),
-    // // numberOfRatings: Joi.number().integer().positive(),
-    // rating: Joi.number().positive(),
     about: Joi.string(),
-    // timeSlots: Joi.array().items(
-    //   Joi.object({
-    //     day: Joi.string(),
-    //     time: Joi.string(),
-    //   })
-    // ),
   }),
 };
 
@@ -105,7 +92,7 @@ const deleteDoctorById = async (ctx) => {
 };
 deleteDoctorById.validationScheme = {
   params: Joi.object({
-    // id: Joi.number().integer().positive().required(),
+    id: Joi.number().integer().positive(),
   }),
 };
 
@@ -114,23 +101,19 @@ module.exports = function installDoctorsRoutes(app) {
     prefix: "/doctors",
   });
 
-  // Public routes
   router.post("/login", validate(login.validationScheme), login);
   router.post("/register", validate(register.validationScheme), register);
 
-  // Routes with authentication/authorization
   router.get(
     "/",
     requireAuthentication,
     validate(getAllDoctors.validationScheme),
-    // checkDoctorId,
     getAllDoctors
   );
   router.get(
     "/:id",
     requireAuthentication,
     validate(getDoctorById.validationScheme),
-    // checkDoctorId,
     getDoctorById
   );
   router.put(

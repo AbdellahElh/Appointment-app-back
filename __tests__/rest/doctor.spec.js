@@ -26,7 +26,7 @@ const data = {
   ],
   doctors: [
     {
-      id: 1,
+      id: 10,
       name: "Dr. Olivia Anderson",
       speciality: "Cardiologist",
       photo: "../assets/imgs/doc1.jpg",
@@ -35,7 +35,7 @@ const data = {
         "Dr. Olivia Anderson is a dedicated and experienced cardiologist...",
     },
     {
-      id: 2,
+      id: 11,
       name: "Dr. Michael Brown Smith",
       speciality: "Dentist",
       photo: "../assets/imgs/doc2.jpg",
@@ -44,7 +44,7 @@ const data = {
         "Dr. Michael Brown Smith is a highly skilled dentist at AZ Sint-Jan Brugge-Oostende...",
     },
     {
-      id: 3,
+      id: 12,
       name: "Dr. John Davis Wilson",
       speciality: "Orthopedic Surgeon",
       photo: "../assets/imgs/doc3.jpg",
@@ -56,7 +56,7 @@ const data = {
 };
 
 const dataToDelete = {
-  doctors: [1, 2, 3],
+  doctors: [10, 11, 12],
   users: [10, 11, 12],
 };
 
@@ -106,20 +106,21 @@ describe("Doctors", () => {
       expect(response.body.items.length).toBe(3);
 
       expect(response.body.items[1]).toEqual({
-        id: 1,
-        name: "Dr. Olivia Anderson",
-        email: "olivia.anderson@gmail.com",
+        id: 11,
+        name: "Dr. Michael Brown Smith",
+        email: "michael.brown@gmail.com",
         roles: [Role.DOCTOR],
-        speciality: "Cardiologist",
-        photo: "../assets/imgs/doc1.jpg",
-        hospital: "AZ Groeninge",
+        speciality: "Dentist",
+        photo: "../assets/imgs/doc2.jpg",
+        hospital: "AZ Sint-Jan Brugge-Oostende",
         about:
-          "Dr. Olivia Anderson is a dedicated and experienced cardiologist...",
+          "Dr. Michael Brown Smith is a highly skilled dentist at AZ Sint-Jan Brugge-Oostende...",
       });
       expect(response.body.items[0]).toEqual({
-        id: 3,
+        id: 12,
         name: "Dr. John Davis Wilson",
-        email: "john.wilson@gmailcom",
+        email: "john.wilson@gmail.com",
+        roles: [Role.DOCTOR],
         speciality: "Orthopedic Surgeon",
         photo: "../assets/imgs/doc3.jpg",
         hospital: "AZ Turnhout",
@@ -141,8 +142,21 @@ describe("Doctors", () => {
 
   describe("GET /api/doctor/:id", () => {
     beforeAll(async () => {
-      await knex(tables.user).insert(data.users);
-      await knex(tables.doctor).insert(doctor);
+      for (const user of data.users) {
+        const userExists = await knex(tables.user).where("id", user.id).first();
+
+        if (!userExists) {
+          await knex(tables.user).insert(user);
+        }
+      }
+      for (const doctor of data.doctors) {
+        const doctorExists = await knex(tables.doctor)
+          .where("id", doctor.id)
+          .first();
+        if (!doctorExists) {
+          await knex(tables.doctor).insert(doctor);
+        }
+      }
     });
 
     afterAll(async () => {
@@ -151,13 +165,15 @@ describe("Doctors", () => {
 
     it("should 200 and return the requested doctor", async () => {
       const response = await request
-        .get(`${url}/1`)
-        .set("Authorization", authHeader);
+        .get(`${url}/10`)
+        .set("Authorization", adminAuthHeader);
 
       expect(response.statusCode).toBe(200);
       expect(response.body).toEqual({
-        id: 1,
+        id: 10,
         name: "Dr. Olivia Anderson",
+        email: "olivia.anderson@gmail.com",
+        roles: [Role.DOCTOR],
         speciality: "Cardiologist",
         photo: "../assets/imgs/doc1.jpg",
         hospital: "AZ Groeninge",
@@ -168,15 +184,15 @@ describe("Doctors", () => {
 
     it("should 404 when requesting not existing doctor", async () => {
       const response = await request
-        .get(`${url}/222`)
+        .get(`${url}/200`)
         .set("Authorization", authHeader);
 
       expect(response.statusCode).toBe(404);
       expect(response.body).toMatchObject({
         code: "NOT_FOUND",
-        message: "No doctor with id 222 exists",
+        message: "No doctor with id 200 exists",
         details: {
-          id: 222,
+          id: 200,
         },
       });
       expect(response.body.stack).toBeTruthy();
@@ -185,13 +201,13 @@ describe("Doctors", () => {
     it("should 400 with invalid doctor id", async () => {
       const response = await request
         .get(`${url}/invalid`)
-        .set("Authorization", authHeader);
+        .set("Authorization", adminAuthHeader);
 
       expect(response.statusCode).toBe(400);
       expect(response.body.code).toBe("VALIDATION_FAILED");
       expect(response.body.details.params).toHaveProperty("id");
     });
-    testAuthHeader(() => request.get(`${url}/1`));
+    testAuthHeader(() => request.get(`${url}/10`));
   });
 
   describe("POST /api/doctors/register", () => {
@@ -235,8 +251,21 @@ describe("Doctors", () => {
 
   describe("PUT /api/doctors/:id", () => {
     beforeAll(async () => {
-      await knex(tables.user).insert(data.users);
-      await knex(tables.doctor).insert(doctor);
+      for (const user of data.users) {
+        const userExists = await knex(tables.user).where("id", user.id).first();
+
+        if (!userExists) {
+          await knex(tables.user).insert(user);
+        }
+      }
+      for (const doctor of data.doctors) {
+        const doctorExists = await knex(tables.doctor)
+          .where("id", doctor.id)
+          .first();
+        if (!doctorExists) {
+          await knex(tables.doctor).insert(doctor);
+        }
+      }
     });
 
     afterAll(async () => {
@@ -245,11 +274,12 @@ describe("Doctors", () => {
 
     it("should 200 and return the updated doctor", async () => {
       const response = await request
-        .put(`${url}/1`)
+        .put(`${url}/10`)
         .set("Authorization", adminAuthHeader)
         .set("Authorization", adminAuthHeader)
         .send({
           name: "Changed name",
+          email: "changed@user.com",
           speciality: "updated speciality",
           photo: "../assets/imgs/doc1.jpg",
           hospital: "Updated Hospital",
@@ -258,8 +288,10 @@ describe("Doctors", () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.body).toEqual({
-        id: 1,
+        id: 10,
         name: "Changed name",
+        email: "changed@user.com",
+        roles: [Role.DOCTOR],
         speciality: "updated speciality",
         photo: "../assets/imgs/doc1.jpg",
         hospital: "Updated Hospital",
@@ -269,10 +301,11 @@ describe("Doctors", () => {
 
     it("should 400 when missing name", async () => {
       const response = await request
-        .put(`${url}/1`)
+        .put(`${url}/10`)
         .set("Authorization", adminAuthHeader)
         .set("Authorization", adminAuthHeader)
         .send({
+          email: "changed@user.com",
           speciality: "updated speciality",
           photo: "../assets/imgs/doc1.jpg",
           hospital: "Updated Hospital",
@@ -284,13 +317,32 @@ describe("Doctors", () => {
       expect(response.body.details.body).toHaveProperty("name");
     });
 
-    it("should return 400 when missing speciality", async () => {
+    it("should 400 when missing email", async () => {
       const response = await request
-        .put(`${url}/1`)
+        .put(`${url}/10`)
         .set("Authorization", adminAuthHeader)
         .set("Authorization", adminAuthHeader)
         .send({
           name: "Changed name",
+          speciality: "updated speciality",
+          photo: "../assets/imgs/doc1.jpg",
+          hospital: "Updated Hospital",
+          about: "Updated about...",
+        });
+
+      expect(response.statusCode).toBe(400);
+      expect(response.body.code).toBe("VALIDATION_FAILED");
+      expect(response.body.details.body).toHaveProperty("email");
+    });
+
+    it("should return 400 when missing speciality", async () => {
+      const response = await request
+        .put(`${url}/10`)
+        .set("Authorization", adminAuthHeader)
+        .set("Authorization", adminAuthHeader)
+        .send({
+          name: "Changed name",
+          email: "changed@user.com",
           photo: "../assets/imgs/doc1.jpg",
           hospital: "Updated Hospital",
           about: "Updated about...",
@@ -303,10 +355,11 @@ describe("Doctors", () => {
 
     it("should return 400 when missing photo", async () => {
       const response = await request
-        .put(`${url}/1`)
+        .put(`${url}/10`)
         .set("Authorization", adminAuthHeader)
         .send({
           name: "Changed name",
+          email: "changed@user.com",
           speciality: "updated speciality",
           hospital: "Updated Hospital",
           about: "Updated about...",
@@ -319,10 +372,11 @@ describe("Doctors", () => {
 
     it("should return 400 when missing hospital", async () => {
       const response = await request
-        .put(`${url}/1`)
+        .put(`${url}/10`)
         .set("Authorization", adminAuthHeader)
         .send({
           name: "Changed name",
+          email: "changed@user.com",
           speciality: "updated speciality",
           photo: "../assets/imgs/doc1.jpg",
           about: "Updated about...",
@@ -335,10 +389,11 @@ describe("Doctors", () => {
 
     it("should return 400 when missing about", async () => {
       const response = await request
-        .put(`${url}/1`)
+        .put(`${url}/10`)
         .set("Authorization", adminAuthHeader)
         .send({
           name: "Changed name",
+          email: "changed@user.com",
           speciality: "updated speciality",
           photo: "../assets/imgs/doc1.jpg",
           hospital: "Updated Hospital",
@@ -348,42 +403,55 @@ describe("Doctors", () => {
       expect(response.body.code).toBe("VALIDATION_FAILED");
       expect(response.body.details.body).toHaveProperty("about");
     });
-    testAuthHeader(() => request.put(`${url}/1`));
+    testAuthHeader(() => request.put(`${url}/10`));
   });
 
   describe("DELETE /api/doctors/:id", () => {
     beforeAll(async () => {
-      await knex(tables.user).insert(data.users);
-      await knex(tables.doctor).insert(doctor);
+      for (const user of data.users) {
+        const userExists = await knex(tables.user).where("id", user.id).first();
+
+        if (!userExists) {
+          await knex(tables.user).insert(user);
+        }
+      }
+      for (const doctor of data.doctors) {
+        const doctorExists = await knex(tables.doctor)
+          .where("id", doctor.id)
+          .first();
+        if (!doctorExists) {
+          await knex(tables.doctor).insert(doctor);
+        }
+      }
     });
 
     it("should 204 and return nothing", async () => {
-      const response = await request.delete(`${url}/1`);
+      const response = await request.delete(`${url}/10`).set("Authorization", adminAuthHeader);
 
       expect(response.statusCode).toBe(204);
       expect(response.body).toEqual({});
     });
     it("should 404 with not existing doctor", async () => {
-      const response = await request.delete(`${url}/1`);
+      const response = await request.delete(`${url}/1111`).set("Authorization", adminAuthHeader);
 
       expect(response.statusCode).toBe(404);
       expect(response.body).toMatchObject({
         code: "NOT_FOUND",
-        message: "No doctor with id 1 exists",
+        message: "No doctor with id 1111 exists",
         details: {
-          id: 1,
+          id: 1111,
         },
       });
       expect(response.body.stack).toBeTruthy();
     });
 
     it("should 400 with invalid doctor id", async () => {
-      const response = await request.get(`${url}/invalid`);
+      const response = await request.get(`${url}/invalid`).set("Authorization", adminAuthHeader);
 
       expect(response.statusCode).toBe(400);
       expect(response.body.code).toBe("VALIDATION_FAILED");
       expect(response.body.details.params).toHaveProperty("id");
     });
-    testAuthHeader(() => request.delete(`${url}/1`));
+    testAuthHeader(() => request.delete(`${url}/10`));
   });
 });

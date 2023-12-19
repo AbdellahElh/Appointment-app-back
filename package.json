@@ -11,6 +11,7 @@
     "t": "env-cmd -f .env.test jest --runInBand",
     "test": "env-cmd -f .env.test jest --runInBand",
     "test:coverage": "env-cmd -f .env.test jest --runInBand --coverage",
+    "t:c": "env-cmd -f .env.test jest --runInBand --coverage",
     "lint": "npx eslint . --fix"
   },
   "dependencies": {
