@@ -80,22 +80,27 @@ const getById = async (id, userId, roles) => {
   return appointment;
 };
 
-const create = async ({
-  date,
-  description,
-  numberOfBeds,
-  condition,
-  patientId,
-  doctorId,
-}) => {
-  const existingPatient = await patientService.getById(patientId);
+const create = async (
+  { patientId, doctorId, date, description, numberOfBeds, condition },
+  userId,
+  roles
+) => {
+  const existingPatient = await patientService.getById(
+    patientId,
+    userId,
+    roles
+  );
   if (!existingPatient) {
-    throw ServiceError.notFound(`There is no patient with id ${id}.`, { id });
+    throw ServiceError.notFound(`There is no patient with id ${patientId}.`, {
+      patientId,
+    });
   }
 
-  const existingDoctor = await doctorService.getById(doctorId);
+  const existingDoctor = await doctorService.getById(doctorId, userId, roles);
   if (!existingDoctor) {
-    throw ServiceError.notFound(`There is no doctor with id ${id}.`, { id });
+    throw ServiceError.notFound(`There is no doctor with id ${doctorId}.`, {
+      doctorId,
+    });
   }
 
   try {
@@ -107,7 +112,7 @@ const create = async ({
       patientId,
       doctorId,
     });
-    return getById(id, patientId, doctorId);
+    return getById(id, roles, userId);
   } catch (error) {
     throw handleDBError(error);
   }
@@ -124,14 +129,14 @@ const updateById = async (
   console.log("roles: ", roles);
 
   const existingPatient = patientId
-    ? await patientService.getById(patientId, userId, roles)
+    ? await patientService.getById(patientId, roles, userId)
     : null;
   if (!existingPatient) {
     throw ServiceError.notFound(`There is no patient with id ${id}.`, { id });
   }
 
   const existingDoctor = doctorId
-    ? await doctorService.getById(doctorId, userId, roles)
+    ? await doctorService.getById(doctorId, roles, userId)
     : null;
   if (!existingDoctor) {
     throw ServiceError.notFound(`There is no doctor with id ${id}.`, { id });

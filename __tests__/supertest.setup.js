@@ -29,7 +29,7 @@ const loginDoctor = async (supertest) => {
 };
 
 const loginAdmin = async (supertest) => {
-  const response = await supertest.post("/api/users/login").send({
+  const response = await supertest.post("/api/doctors/login").send({
     email: "abdellah.elhalimimerroun@student.hogent.be",
     password: "12345678",
   });

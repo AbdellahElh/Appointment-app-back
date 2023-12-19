@@ -117,8 +117,9 @@ const getAll = async (userId, roles) => {
   }
 
   // Remove duplicates
-  const uniqueItems = Array.from(new Set(items.map(item => item.id)))
-    .map(id => items.find(item => item.id === id));
+  const uniqueItems = Array.from(new Set(items.map((item) => item.id))).map(
+    (id) => items.find((item) => item.id === id)
+  );
 
   return {
     items: uniqueItems.map(makeExposedPatient),
@@ -126,16 +127,20 @@ const getAll = async (userId, roles) => {
   };
 };
 
-const getById = async (id, userId, roles) => {
-  const patient = await patientRepository.findById(id);
+const getById = async (id, roles, userId) => {
+  console.log("getById: id, userId, roles", id, userId, roles);
 
-  console.log("getById: id, userId, roles", id, userId, roles); // userId and roles are undefined
+  const patient = await patientRepository.findById(id);
 
   if (!patient) {
     throw ServiceError.notFound(`No patient with id ${id} exists`, { id });
   }
 
-  if (roles.includes(Role.PATIENT) && id !== userId && !roles.includes(Role.ADMIN)) {
+  if (
+    roles.includes(Role.PATIENT) &&
+    id !== userId &&
+    !roles.includes(Role.ADMIN)
+  ) {
     throw ServiceError.forbidden(
       "You are not allowed to view this patient's information"
     );
@@ -196,7 +201,6 @@ const updateById = async (
 ) => {
   console.log("updateById", id, userId, roles);
   if (roles.includes(Role.DOCTOR) && !roles.includes(Role.ADMIN)) {
-
     throw ServiceError.forbidden(
       "You are not allowed to update this patient's information"
     );

@@ -1,5 +1,5 @@
 const { tables } = require("../../src/data");
-const { withServer, loginPatient } = require("../supertest.setup");
+const { withServer, loginAdmin } = require("../supertest.setup");
 const { testAuthHeader } = require("../common/auth");
 
 const data = {
@@ -32,12 +32,34 @@ const data = {
       condition: "Knee pain and difficulty walking",
     },
   ],
+  patients: [
+    {
+      id: 1,
+      name: "Emily Smith",
+      street: "789 Oak Street",
+      number: "Apt 3C",
+      postalCode: "54321",
+      city: "Metropolitan City",
+      birthdate: new Date(2001, 10, 15),
+    },
+  ],
+  doctors: [
+    {
+      id: 1,
+      name: "Dr. Olivia Williams Anderson",
+      speciality: "Cardiologist",
+      numberOfPatients: 3, //this week
+      photo: "../src/assets/imgs/doc1.jpg",
+      about:
+        "Dr. Olivia Anderson is a dedicated and experienced cardiologist, currently practicing at AZ Groeninge. With a patient-first approach, she has successfully treated numerous patients, earning a 5-star rating. Her commitment to her profession is reflected in the positive health outcomes of her patients. She continually strives to provide the best cardiac care, keeping herself updated with the latest in cardiology.",
+    },
+  ],
 };
 
 const dataToDelete = {
   appointments: [1, 2, 3],
-  // patients: [1],
-  // doctors: [1],
+  patients: [1],
+  doctors: [1],
 };
 
 describe("Appointments", () => {
@@ -49,15 +71,15 @@ describe("Appointments", () => {
   });
 
   beforeAll(async () => {
-    authHeader = await loginPatient(request);
+    authHeader = await loginAdmin(request);
   });
 
   const url = "/api/appointments";
 
   describe("GET /api/appointments", () => {
     beforeAll(async () => {
-      // await knex(tables.patient).insert(data.patients);
-      // await knex(tables.doctor).insert(data.doctors);
+      await knex(tables.patient).insert(data.patients);
+      await knex(tables.doctor).insert(data.doctors);
       await knex(tables.appointment).insert(data.appointments);
     });
 
@@ -66,9 +88,9 @@ describe("Appointments", () => {
         .whereIn("id", dataToDelete.appointments)
         .delete();
 
-      // await knex(tables.patient).whereIn("id", dataToDelete.patients).delete();
+      await knex(tables.patient).whereIn("id", dataToDelete.patients).delete();
 
-      // await knex(tables.doctor).whereIn("id", dataToDelete.doctors).delete();
+      await knex(tables.doctor).whereIn("id", dataToDelete.doctors).delete();
     });
 
     it("should 200 and return all appointments", async () => {
@@ -119,22 +141,30 @@ describe("Appointments", () => {
     testAuthHeader(() => request.get(url));
 
     describe("GET /api/appointments/:id", () => {
-      beforeAll(async () => {
-        // testdata laden in de db
-        // await knex(tables.patient).insert(data.patients);
-        // await knex(tables.doctor).insert(data.doctors);
-        await knex(tables.appointment).insert(data.appointments[0]);
+      beforeEach(async () => {
+        // Check if the patient and doctor already exist
+        const patientExists = await knex(tables.patient).where("id", 1).first();
+        const doctorExists = await knex(tables.doctor).where("id", 1).first();
+        const appointmentExists = await knex(tables.appointment)
+          .where("id", 1)
+          .first();
+
+        if (!patientExists) {
+          await knex(tables.patient).insert(data.patients);
+        }
+        if (!doctorExists) {
+          await knex(tables.doctor).insert(data.doctors);
+        }
+        if (!appointmentExists) {
+          await knex(tables.appointment).insert(data.appointments[0]);
+        }
       });
 
-      afterAll(async () => {
-        // testdata verwijderen
-        await knex(tables.appointment)
-          .whereIn("id", dataToDelete.appointments)
-          .delete();
-
-        // await knex(tables.patient).whereIn("id", dataToDelete.patients).delete();
-
-        // await knex(tables.doctor).whereIn("id", dataToDelete.doctors).delete();
+      afterEach(async () => {
+        // Remove test data
+        await knex(tables.appointment).del();
+        await knex(tables.patient).del();
+        await knex(tables.doctor).del();
       });
 
       it("it should 200 and return the requested appointment", async () => {
@@ -190,8 +220,8 @@ describe("Appointments", () => {
       const appointmentsToDelete = [];
 
       beforeAll(async () => {
-        // await knex(tables.patient).insert(data.patients);
-        // await knex(tables.doctor).insert(data.doctors);
+        await knex(tables.patient).insert(data.patients);
+        await knex(tables.doctor).insert(data.doctors);
       });
 
       afterAll(async () => {
@@ -199,8 +229,10 @@ describe("Appointments", () => {
           .whereIn("id", appointmentsToDelete)
           .delete();
 
-        // await knex(tables.patient).whereIn("id", dataToDelete.patients).delete();
-        // await knex(tables.doctor).whereIn("id", dataToDelete.doctors).delete();
+        await knex(tables.patient)
+          .whereIn("id", dataToDelete.patients)
+          .delete();
+        await knex(tables.doctor).whereIn("id", dataToDelete.doctors).delete();
       });
 
       it("should 201 and return the created appointment", async () => {
@@ -212,8 +244,8 @@ describe("Appointments", () => {
             numberOfBeds: 2,
             condition: "General Checkup",
             date: "2023-10-10T14:00:00.000Z",
-            // patientId: 1,
-            // doctorId: 1,
+            patientId: 1,
+            doctorId: 1,
           });
 
         expect(response.status).toBe(201);
@@ -243,8 +275,8 @@ describe("Appointments", () => {
             numberOfBeds: 2,
             condition: "General Checkup",
             date: "2023-10-10T14:00:00.000Z",
-            // patientId: 123,
-            // doctorId: 1,
+            patientId: 123,
+            doctorId: 1,
           });
 
         expect(response.statusCode).toBe(404);
@@ -266,8 +298,8 @@ describe("Appointments", () => {
             numberOfBeds: 2,
             condition: "General Checkup",
             date: "2023-10-10T14:00:00.000Z",
-            // patientId: 1,
-            // doctorId: 1,
+            patientId: 1,
+            doctorId: 1,
           });
 
         expect(response.statusCode).toBe(400);
@@ -283,8 +315,8 @@ describe("Appointments", () => {
             description: "New Appointment",
             condition: "General Checkup",
             date: "2023-10-10T14:00:00.000Z",
-            // patientId: 1,
-            // doctorId: 1,
+            patientId: 1,
+            doctorId: 1,
           });
 
         expect(response.statusCode).toBe(400);
@@ -300,8 +332,8 @@ describe("Appointments", () => {
             description: "New Appointment",
             numberOfBeds: 2,
             date: "2023-10-10T14:00:00.000Z",
-            // patientId: 1,
-            // doctorId: 1,
+            patientId: 1,
+            doctorId: 1,
           });
 
         expect(response.statusCode).toBe(400);
@@ -317,8 +349,8 @@ describe("Appointments", () => {
             description: "New Appointment",
             numberOfBeds: 2,
             condition: "General Checkup",
-            // patientId: 1,
-            // doctorId: 1,
+            patientId: 1,
+            doctorId: 1,
           });
 
         expect(response.statusCode).toBe(400);
@@ -332,7 +364,7 @@ describe("Appointments", () => {
       //       numberOfBeds: 2,
       //       condition: "General Checkup",
       //       date: "2023-10-10T14:00:00.000Z",
-      //       // doctorId: 1,
+      // doctorId: 1,
       //     });
 
       //     expect(response.statusCode).toBe(400);
@@ -343,8 +375,8 @@ describe("Appointments", () => {
 
     describe("PUT /api/appointments/:id", () => {
       beforeAll(async () => {
-        // await knex(tables.patient).insert(data.patients);
-        // await knex(tables.doctor).insert(data.doctors);
+        await knex(tables.patient).insert(data.patients);
+        await knex(tables.doctor).insert(data.doctors);
         await knex(tables.appointment).insert(data.appointments[0]);
       });
 
@@ -353,9 +385,11 @@ describe("Appointments", () => {
           .whereIn("id", dataToDelete.appointments)
           .delete();
 
-        // await knex(tables.patient).whereIn("id", dataToDelete.patients).delete();
+        await knex(tables.patient)
+          .whereIn("id", dataToDelete.patients)
+          .delete();
 
-        // await knex(tables.doctor).whereIn("id", dataToDelete.doctors).delete();
+        await knex(tables.doctor).whereIn("id", dataToDelete.doctors).delete();
       });
 
       it("should 200 and return the updated appointment", async () => {
@@ -367,8 +401,8 @@ describe("Appointments", () => {
             numberOfBeds: 4,
             condition: "Updated Condition",
             date: "2023-10-10T15:30:00.000Z",
-            // patientId: 1,
-            // doctorId: 1,
+            patientId: 1,
+            doctorId: 1,
           });
 
         expect(response.statusCode).toBe(200);
@@ -396,14 +430,14 @@ describe("Appointments", () => {
             numberOfBeds: 4,
             condition: "Updated Condition",
             date: "2023-10-10T15:30:00.000Z",
-            // patientId: 1,
-            // doctorId: 1,
+            patientId: 1,
+            doctorId: 1,
           });
 
         expect(response.statusCode).toBe(404);
         expect(response.body).toMatchObject({
           code: "NOT_FOUND",
-          message: "No appointment with id 2 exists",
+          message: "There is no appointment with id 2.",
           details: {
             id: 2,
           },
@@ -421,7 +455,7 @@ describe("Appointments", () => {
             condition: "Updated Condition",
             date: "2023-10-10T15:30:00.000Z",
             patientId: 123,
-            // doctorId: 1,
+            doctorId: 1,
           });
 
         expect(response.statusCode).toBe(404);
@@ -443,8 +477,8 @@ describe("Appointments", () => {
             description: "Updated Appointment",
             numberOfBeds: 4,
             date: "2023-10-10T15:30:00.000Z",
-            // patientId: 1,
-            // doctorId: 1,
+            patientId: 1,
+            doctorId: 1,
           });
 
         expect(response.statusCode).toBe(400);
@@ -460,8 +494,8 @@ describe("Appointments", () => {
             condition: "Updated Condition",
             numberOfBeds: 4,
             description: "Updated Appointment",
-            // patientId: 1,
-            // doctorId: 1,
+            patientId: 1,
+            doctorId: 1,
           });
 
         expect(response.statusCode).toBe(400);
@@ -475,7 +509,7 @@ describe("Appointments", () => {
       //     numberOfBeds: 4,
       //     date: "2021-05-27T13:00:00.000Z",
       //     description: "Updated Appointment",
-      //     // doctorId: 1,
+      // doctorId: 1,
       //   });
 
       //   expect(response.statusCode).toBe(400);
@@ -489,7 +523,7 @@ describe("Appointments", () => {
       //     numberOfBeds: 4,
       //     date: "2021-05-27T13:00:00.000Z",
       //     description: "Updated Appointment",
-      //     // patientId: 1,
+      // patientId: 1,
       // //   });
 
       //   expect(response.statusCode).toBe(400);
@@ -500,14 +534,16 @@ describe("Appointments", () => {
 
     describe("DELETE /api/appointments/:id", () => {
       beforeAll(async () => {
-        // await knex(tables.patient).insert(data.patients);
-        // await knex(tables.doctor).insert(data.doctors);
+        await knex(tables.patient).insert(data.patients);
+        await knex(tables.doctor).insert(data.doctors);
         await knex(tables.appointment).insert(data.appointments[0]);
       });
 
       afterAll(async () => {
-        // await knex(tables.patient).whereIn("id", dataToDelete.patients).delete();
-        // await knex(tables.doctor).whereIn("id", dataToDelete.doctors).delete();
+        await knex(tables.patient)
+          .whereIn("id", dataToDelete.patients)
+          .delete();
+        await knex(tables.doctor).whereIn("id", dataToDelete.doctors).delete();
       });
 
       it("should 204 and return nothing", async () => {

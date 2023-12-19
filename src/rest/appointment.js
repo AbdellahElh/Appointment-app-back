@@ -25,17 +25,14 @@ getAppointmentById.validationScheme = {
 };
 
 const createAppointment = async (ctx) => {
-  const newAppointment = await appointmentService.create({
-    ...ctx.request.body,
-    date: new Date(ctx.request.body.date),
-    condition: ctx.request.body.condition,
-    description: ctx.request.body.description,
-    numberOfBeds: ctx.request.body.numberOfBeds,
-    patientId: ctx.request.body.patientId,
-    doctorId: ctx.request.body.doctorId,
-    // patientId: ctx.state.session.patientId,
-    // doctorId: ctx.state.session.doctorId,
-  });
+  const { userId, roles } = ctx.state.session;
+  const newAppointment = await appointmentService.create(
+    {
+      ...ctx.request.body,
+    },
+    roles,
+    userId
+  );
 
   ctx.status = 201;
   ctx.body = newAppointment;
