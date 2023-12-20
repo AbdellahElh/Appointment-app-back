@@ -1,14 +1,15 @@
-const config = require('config');
-const Koa = require('koa');
+const config = require("config");
+const Koa = require("koa");
 
-const { initializeLogger, getLogger } = require('./core/logging');
-const installRest = require('./rest');
-const { initializeData, shutdownData } = require('./data');
-const installMiddlewares = require('./core/installMiddlewares');
+const serve = require("koa-static");
+const { initializeLogger, getLogger } = require("./core/logging");
+const installRest = require("./rest");
+const { initializeData, shutdownData } = require("./data");
+const installMiddlewares = require("./core/installMiddlewares");
 
-const NODE_ENV = config.get('env');
-const LOG_LEVEL = config.get('log.level');
-const LOG_DISABLED = config.get('log.disabled');
+const NODE_ENV = config.get("env");
+const LOG_LEVEL = config.get("log.level");
+const LOG_DISABLED = config.get("log.disabled");
 
 module.exports = async function createServer() {
   initializeLogger({
@@ -23,6 +24,8 @@ module.exports = async function createServer() {
 
   const app = new Koa();
 
+  app.use(serve(__dirname + "/assets"));
+
   installMiddlewares(app);
 
   installRest(app);
@@ -33,7 +36,7 @@ module.exports = async function createServer() {
     },
     start() {
       return new Promise((resolve) => {
-        const port = config.get('port');
+        const port = config.get("port");
         app.listen(port, () => {
           getLogger().info(`🚀 Server listening on http://localhost:${port}`);
           resolve();
@@ -44,7 +47,7 @@ module.exports = async function createServer() {
       //cleanup
       app.removeAllListeners();
       await shutdownData();
-      getLogger().info('Goodbye!');
+      getLogger().info("Goodbye!");
     },
   };
 };

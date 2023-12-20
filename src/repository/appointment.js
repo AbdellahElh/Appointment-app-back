@@ -120,28 +120,6 @@ const findAllDoctorAppointments = async (userId) => {
   return appointments.map(formatAppointment);
 };
 
-// const findById = async (id /*, patientId, doctorId */) => {
-//   const appointment = await getKnex()(tables.appointment)
-//     .join(
-//       tables.doctor,
-//       `${tables.appointment}.doctor_id`,
-//       "=",
-//       `${tables.doctor}.id`
-//     )
-//     .join(
-//       tables.patient,
-//       `${tables.appointment}.patient_id`,
-//       "=",
-//       `${tables.patient}.id`
-//     )
-//     .where(`${tables.appointment}.id`, id)
-//     // .where(`${tables.appointment}.patient_id`, patientId)
-//     // .where(`${tables.appointment}.doctor_id`, doctorId)
-//     .first(SELECT_COLUMNS);
-
-//   return appointment && formatAppointment(appointment);
-// };
-
 const findById = async (id) => {
   console.log(`Fetching appointment with id ${id}`);
 
