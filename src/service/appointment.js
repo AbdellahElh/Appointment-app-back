@@ -48,7 +48,7 @@ const getById = async (id, userId, roles) => {
   }
   if (
     roles.includes(Role.PATIENT) &&
-    id !== userId &&
+    appointment.patient.id !== userId &&
     !roles.includes(Role.ADMIN)
   ) {
     console.log("user roles: ", roles, "user id: ", userId);
