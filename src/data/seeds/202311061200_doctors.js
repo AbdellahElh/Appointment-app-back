@@ -1,7 +1,7 @@
 const { tables } = require("..");
-const doc1 = require("../../assets/imgs/doc1.jpg");
-const doc2 = require("../../assets/imgs/doc2.jpg");
-const doc3 = require("../../assets/imgs/doc3.jpg");
+const doc1 = "../../../assets/imgs/doc1.jpg";
+const doc2 = "../../../assets/imgs/doc2.jpg";
+const doc3 = "../../../assets/imgs/doc3.jpg";
 
 module.exports = {
   seed: async (knex) => {
