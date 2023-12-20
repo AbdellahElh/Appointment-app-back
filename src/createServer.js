@@ -1,7 +1,6 @@
 const config = require("config");
 const Koa = require("koa");
 
-const serve = require("koa-static");
 const { initializeLogger, getLogger } = require("./core/logging");
 const installRest = require("./rest");
 const { initializeData, shutdownData } = require("./data");
@@ -23,8 +22,6 @@ module.exports = async function createServer() {
   await initializeData();
 
   const app = new Koa();
-
-  app.use(serve(__dirname + "/assets"));
 
   installMiddlewares(app);
 
