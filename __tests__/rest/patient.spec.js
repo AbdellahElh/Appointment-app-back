@@ -248,7 +248,7 @@ describe("Patients", () => {
       expect(response.body.user.passwordHash).toBeUndefined();
       expect(response.body.user.street).toBe("Default Street");
       expect(response.body.user.number).toBe("Default Number");
-      expect(response.body.user.postalCode).toBe("Default postalcode");
+      expect(response.body.user.postalCode).toBe("Default Postalcode");
       expect(response.body.user.city).toBe("Default City");
       expect(response.body.user.roles).toEqual([Role.PATIENT]);
       expect(response.body.user.birthdate).toBeTruthy();

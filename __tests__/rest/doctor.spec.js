@@ -231,7 +231,7 @@ describe("Doctors", () => {
       expect(response.body.user.roles).toContain("DOCTOR");
       expect(response.body.user.speciality).toBe("Default Speciality");
       expect(response.body.user.hospital).toBe("Default Hospital");
-      expect(response.body.user.about).toBeNull();
+      expect(response.body.user.about).toBe("Default About");
       expect(response.body.token).toBeTruthy();
 
       doctorsToDelete.push(response.body.user.id);
