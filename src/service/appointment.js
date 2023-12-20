@@ -149,11 +149,7 @@ const updateById = async (
     });
   }
 
-  if (
-    roles.includes(Role.PATIENT) &&
-    id !== userId &&
-    !roles.includes(Role.ADMIN)
-  ) {
+  if (roles.includes(Role.PATIENT) && appointment.patient.id !== userId && !roles.includes(Role.ADMIN)) {
     console.log("user roles: ", roles, "user id: ", userId);
 
     throw ServiceError.forbidden(
