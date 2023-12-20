@@ -95,6 +95,33 @@ const create = async ({
   }
 };
 
+// const register = async ({
+//   email,
+//   passwordHash,
+//   roles,
+//   name,
+// }) => {
+//   try {
+//     const [userId] = await getKnex()(tables.user).insert({
+//       email,
+//       password_hash: passwordHash,
+//       roles: JSON.stringify(roles),
+//     });
+
+//     await getKnex()(tables.patient).insert({
+//       id: userId,
+//       name,
+//     });
+
+//     return userId;
+//   } catch (error) {
+//     getLogger().error("Error in create", {
+//       error,
+//     });
+//     throw error;
+//   }
+// };
+
 const register = async ({
   email,
   passwordHash,
@@ -111,6 +138,11 @@ const register = async ({
     await getKnex()(tables.patient).insert({
       id: userId,
       name,
+      street: 'Default Street', 
+      number: 'Default Number', 
+      postalcode: 'Default Postalcode', 
+      city: 'Default City', 
+      birthdate: '2000-01-01', 
     });
 
     return userId;
