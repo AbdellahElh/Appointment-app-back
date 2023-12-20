@@ -1,5 +1,5 @@
 const { tables } = require("../index.js");
-
+const defaultIMG = "https://i.imgur.com/2WZtVXx.png";
 module.exports = {
   up: async (knex) => {
     await knex.schema.createTable(tables.doctor, (table) => {
@@ -10,7 +10,7 @@ module.exports = {
         .string("speciality", 255)
         .notNullable()
         .defaultTo("Default Speciality");
-      table.string("photo", 255).defaultTo("https://i.imgur.com/2WZtVXx.png");
+      table.string("photo", 255).defaultTo(defaultIMG);
 
       table.string("hospital", 255).defaultTo("Default Hospital");
       table.text("about").defaultTo("Default About");
