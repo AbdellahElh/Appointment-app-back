@@ -1,5 +1,6 @@
 const { getLogger } = require("../core/logging");
 const { tables, getKnex } = require("../data/index");
+const doc0 = "/imgs/doc0.png";
 
 const formatDoctor = ({ doctorId, doctorEmail, patientRoles, ...doctor }) => {
   return {
@@ -84,30 +85,6 @@ const create = async ({
   }
 };
 
-// const register = async ({ name, email, passwordHash, roles }) => {
-//   try {
-//     const [userId] = await getKnex()(tables.user)
-//       .returning("id")
-//       .insert({
-//         email,
-//         password_hash: passwordHash,
-//         roles: JSON.stringify(roles),
-//       });
-
-//     await getKnex()(tables.doctor).insert({
-//       id: userId,
-//       name,
-//     });
-
-//     return userId;
-//   } catch (error) {
-//     getLogger().error("Error in create", {
-//       error,
-//     });
-//     throw error;
-//   }
-// };
-
 const register = async ({ name, email, passwordHash, roles }) => {
   try {
     const [userId] = await getKnex()(tables.user)
@@ -122,7 +99,7 @@ const register = async ({ name, email, passwordHash, roles }) => {
       id: userId,
       name,
       speciality: "Default Speciality",
-      photo: "Default Photo",
+      photo: doc0,
       hospital: "Default Hospital",
       about: "Default About",
     });
