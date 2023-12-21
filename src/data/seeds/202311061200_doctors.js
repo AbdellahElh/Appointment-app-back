@@ -1,4 +1,5 @@
 const { tables } = require("..");
+const doc0 = "/imgs/doc0.png";	
 const doc1 = "/imgs/doc1.jpg";
 const doc2 = "/imgs/doc2.jpg";
 const doc3 = "/imgs/doc3.jpg";
