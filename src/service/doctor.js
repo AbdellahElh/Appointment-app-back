@@ -76,15 +76,15 @@ const login = async (email, password) => {
 
   if (!doctor) {
     throw ServiceError.unauthorized(
-      "The given email and password do not match"
-    );
+      "Email not found. Please sign up if you're a new user."
+      );
   }
 
   const passwordValid = await verifyPassword(password, doctor.password_hash);
 
   if (!passwordValid) {
     throw ServiceError.unauthorized(
-      "The given email and password do not match"
+      "The password you entered is incorrect. Please check and try again."
     );
   }
 

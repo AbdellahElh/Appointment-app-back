@@ -94,38 +94,50 @@ deleteAppointment.validationScheme = {
 };
 
 module.exports = function installAppointmentsRoutes(app) {
+  // Een nieuwe router wordt gecreëerd met de prefix "/appointments"
   const router = new Router({
     prefix: "/appointments",
   });
 
+  // De router gebruikt de requireAuthentication middleware voor alle routes
   router.use(requireAuthentication);
 
-  // Routes with authentication/authorization
+  // Een GET route wordt gedefinieerd voor het ophalen van alle appointments
+  // De validate middleware valideert de aanvraag voordat deze naar de handler wordt gestuurd
   router.get(
     "/",
     validate(getAllAppointments.validationScheme),
     getAllAppointments
   );
+
+  // Een GET route wordt gedefinieerd voor het ophalen van een appointment op basis van ID
   router.get(
     "/:id",
     validate(getAppointmentById.validationScheme),
     getAppointmentById
   );
+
+  // Een POST route wordt gedefinieerd voor het aanmaken van een nieuwe appointment
   router.post(
     "/",
     validate(createAppointment.validationScheme),
     createAppointment
   );
+
+  // Een PUT route wordt gedefinieerd voor het bijwerken van een appointment op basis van ID
   router.put(
     "/:id",
     validate(updateAppointment.validationScheme),
     updateAppointment
   );
+
+  // Een DELETE route wordt gedefinieerd voor het verwijderen van een appointment op basis van ID
   router.delete(
     "/:id",
     validate(deleteAppointment.validationScheme),
     deleteAppointment
   );
 
+  // De router wordt toegevoegd aan de Koa-applicatie
   app.use(router.routes()).use(router.allowedMethods());
 };

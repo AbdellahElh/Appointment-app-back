@@ -76,14 +76,19 @@ describe("Appointments", () => {
 
   const url = "/api/appointments";
 
+  // Begin van de test suite voor de /api/appointments endpoint
   describe("GET /api/appointments", () => {
+    // Voer deze functie uit voordat alle tests worden uitgevoerd
     beforeAll(async () => {
+      // Voeg testgegevens toe aan de patient, doctor en appointment tabellen
       await knex(tables.patient).insert(data.patients);
       await knex(tables.doctor).insert(data.doctors);
       await knex(tables.appointment).insert(data.appointments);
     });
 
+    // Voer deze functie uit nadat alle tests zijn uitgevoerd
     afterAll(async () => {
+      // Verwijder de testgegevens uit de appointment, patient en doctor tabellen
       await knex(tables.appointment)
         .whereIn("id", dataToDelete.appointments)
         .delete();
@@ -93,11 +98,18 @@ describe("Appointments", () => {
       await knex(tables.doctor).whereIn("id", dataToDelete.doctors).delete();
     });
 
+    // Een individuele test case
     it("should 200 and return all appointments", async () => {
+      // Maak een GET request naar de /api/appointments endpoint
       const response = await request.get(url).set("Authorization", authHeader);
+
+      // Verwacht dat de statuscode van de response 200 is
       expect(response.status).toBe(200);
+
+      // Verwacht dat het aantal items in de response body gelijk is aan 3
       expect(response.body.items.length).toBe(3);
 
+      // Verwacht dat het tweede item in de response body gelijk is aan het gegeven object
       expect(response.body.items[1]).toEqual({
         id: 2,
         doctor: {
@@ -113,6 +125,8 @@ describe("Appointments", () => {
         numberOfBeds: 2,
         condition: "Toothache and cavity",
       });
+
+      // Verwacht dat het derde item in de response body gelijk is aan het gegeven object
       expect(response.body.items[2]).toEqual({
         id: 1,
         doctor: {
@@ -129,6 +143,7 @@ describe("Appointments", () => {
         condition: "Chest pain and shortness of breath",
       });
     });
+    // einde 1ste test case
     it("should 400 when given an argument", async () => {
       const response = await request
         .get(`${url}?invalid=true`)

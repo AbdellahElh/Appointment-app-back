@@ -77,9 +77,9 @@ const login = async (email, password) => {
   const patient = await patientRepository.findByEmail(email);
 
   if (!patient) {
-    getLogger().error("User roles:", roles);
+    // getLogger().error("User roles:", roles);
     throw ServiceError.unauthorized(
-      "The given email and password do not match"
+      "Email not found. Please sign up if you're a new user."
     );
   }
 
@@ -87,7 +87,7 @@ const login = async (email, password) => {
 
   if (!passwordValid) {
     throw ServiceError.unauthorized(
-      "The given email and password do not match"
+      "The password you entered is incorrect. Please check and try again."
     );
   }
 
@@ -108,10 +108,12 @@ const getAll = async (userId, roles) => {
     console.log("patient user roles", roles);
     const patient = await patientRepository.findById(userId);
     items = patient ? [patient] : [];
-  } else if (roles.includes(Role.DOCTOR) && !roles.includes(Role.ADMIN)) {
+  } 
+  else if (roles.includes(Role.DOCTOR) && !roles.includes(Role.ADMIN)) {
     console.log("doctor user roles", roles);
     items = await patientRepository.findByDoctorId(userId);
-  } else {
+  } 
+  else {
     console.log("admin user roles", roles);
     items = await patientRepository.findAll();
   }
@@ -204,7 +206,7 @@ const updateById = async (
   id,
   { email, name, street, number, postalCode, city, birthdate },
   userId,
-  roles,
+  roles
 ) => {
   console.log("updateById; id, roles, userId", id, roles, userId);
   if (roles.includes(Role.DOCTOR) && !roles.includes(Role.ADMIN)) {

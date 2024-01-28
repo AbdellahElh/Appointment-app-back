@@ -2,9 +2,13 @@ const { tables } = require("..");
 const Role = require("../../core/roles");
 
 module.exports = {
+  // De 'seed' functie wordt uitgevoerd om de initiële data in de tabel te plaatsen
   seed: async (knex) => {
+    // We gebruiken knex(tables.user).delete() om alle bestaande data uit de tabel te verwijderen
     await knex(tables.user).delete();
+    // We gebruiken knex(tables.user).insert() om nieuwe data in de tabel te plaatsen
     await knex(tables.user).insert([
+      // Elke object in deze array vertegenwoordigt een rij in de tabel
       {
         id: 5,
         // name: "Abdellah El Halimi Merroun",
@@ -45,7 +49,7 @@ module.exports = {
         email: "olivia.anderson@gmail.com",
         password_hash:
           "$argon2id$v=19$m=131072,t=6,p=1$9AMcua9h7va8aUQSEgH/TA$TUFuJ6VPngyGThMBVo3ONOZ5xYfee9J1eNMcA5bSpq4",
-        roles: JSON.stringify([Role.DOCTOR ]),
+        roles: JSON.stringify([Role.DOCTOR]),
       },
       {
         id: 11,

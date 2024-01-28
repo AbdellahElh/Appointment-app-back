@@ -23,11 +23,11 @@ const makeLoginData = async (user) => {
 
 const checkAndParseSession = async (authHeader) => {
   if (!authHeader) {
-    throw ServiceError.unauthorized('You need to be signed in');
-  } 
+    throw ServiceError.unauthorized("You need to be signed in");
+  }
 
-  if (!authHeader.startsWith('Bearer ')) {
-    throw ServiceError.unauthorized('Invalid authentication token');
+  if (!authHeader.startsWith("Bearer ")) {
+    throw ServiceError.unauthorized("Invalid authentication token");
   }
 
   const authToken = authHeader.substring(7);
@@ -49,7 +49,7 @@ const checkRole = (role, roles) => {
   const hasPermission = roles.includes(role);
 
   if (!hasPermission) {
-    getLogger().error("User roles:", roles );
+    getLogger().error("User roles:", roles);
     throw ServiceError.forbidden(
       "You are not allowed to view this part of the application"
     );
@@ -61,7 +61,7 @@ const login = async (email, password) => {
 
   if (!user) {
     throw ServiceError.unauthorized(
-      "The given email and password do not match"
+      "Email not found. Please sign up if you're a new user."
     );
   }
 
@@ -69,7 +69,7 @@ const login = async (email, password) => {
 
   if (!passwordValid) {
     throw ServiceError.unauthorized(
-      "The given email and password do not match"
+      "The password you entered is incorrect. Please check and try again."
     );
   }
 
@@ -91,7 +91,7 @@ const register = async ({ email, password }) => {
     const userId = await userRepository.create({
       email,
       passwordHash,
-      roles: [Role.USER], 
+      roles: [Role.USER],
     });
     const user = await userRepository.findById(userId);
     return await makeLoginData(user);

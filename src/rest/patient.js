@@ -149,14 +149,12 @@ module.exports = function installPatientsRoutes(app) {
     "/",
     requireAuthentication,
     validate(getAllPatients.validationScheme),
-    // checkPatientId,
     getAllPatients
   );
   router.get(
     "/:id",
     requireAuthentication,
     validate(getPatientById.validationScheme),
-    // checkPatientId,
     getPatientById
   );
   router.post(
@@ -169,7 +167,6 @@ module.exports = function installPatientsRoutes(app) {
     "/:id",
     requireAuthentication,
     validate(updatePatientById.validationScheme),
-    // checkPatientId,
     updatePatientById
   );
   router.delete(

@@ -210,20 +210,27 @@ describe("Doctors", () => {
     testAuthHeader(() => request.get(`${url}/10`));
   });
 
+  // Begin van de test suite voor de /api/doctors/register endpoint
   describe("POST /api/doctors/register", () => {
+    // Array om de ID's van de aangemaakte dokters bij te houden
     const doctorsToDelete = [];
 
+    // Functie die na alle tests wordt uitgevoerd
     afterAll(async () => {
+      // Verwijder alle aangemaakte dokters uit de database
       await knex(tables.doctor).whereIn("id", doctorsToDelete).delete();
     });
 
+    // Test case voor het succesvol aanmaken van een dokter
     it("should 200 and return the created doctor", async () => {
+      // Maak een POST request naar de /api/doctors/register endpoint met de nodige gegevens
       const response = await request.post(`${url}/register`).send({
         name: "New registered doc",
         email: "doctor@user.com",
         password: "12345678",
       });
 
+      // Verwacht dat de statuscode van de response 200 is
       expect(response.statusCode).toBe(200);
       expect(response.body.user.id).toBeTruthy();
       expect(response.body.user.name).toBe("New registered doc");
@@ -234,17 +241,25 @@ describe("Doctors", () => {
       expect(response.body.user.about).toBe("Default About");
       expect(response.body.token).toBeTruthy();
 
+      // Voeg de ID van de aangemaakte dokter toe aan de array om later te verwijderen
       doctorsToDelete.push(response.body.user.id);
     });
 
+    // Test case voor het geval dat de naam ontbreekt bij het aanmaken van een dokter
     it("should 400 when missing name", async () => {
+      // Maak een POST request naar de /api/doctors/register endpoint zonder een naam
       const response = await request.post(`${url}/register`).send({
         email: "register@hogent.be",
         password: "12345678",
       });
 
+      // Verwacht dat de statuscode van de response 400 is
       expect(response.statusCode).toBe(400);
+
+      // Verwacht dat de foutcode gelijk is aan "VALIDATION_FAILED"
       expect(response.body.code).toBe("VALIDATION_FAILED");
+
+      // Verwacht dat de details van de fout een eigenschap "name" hebben
       expect(response.body.details.body).toHaveProperty("name");
     });
   });
@@ -426,13 +441,17 @@ describe("Doctors", () => {
     });
 
     it("should 204 and return nothing", async () => {
-      const response = await request.delete(`${url}/10`).set("Authorization", adminAuthHeader);
+      const response = await request
+        .delete(`${url}/10`)
+        .set("Authorization", adminAuthHeader);
 
       expect(response.statusCode).toBe(204);
       expect(response.body).toEqual({});
     });
     it("should 404 with not existing doctor", async () => {
-      const response = await request.delete(`${url}/1111`).set("Authorization", adminAuthHeader);
+      const response = await request
+        .delete(`${url}/1111`)
+        .set("Authorization", adminAuthHeader);
 
       expect(response.statusCode).toBe(404);
       expect(response.body).toMatchObject({
@@ -446,7 +465,9 @@ describe("Doctors", () => {
     });
 
     it("should 400 with invalid doctor id", async () => {
-      const response = await request.get(`${url}/invalid`).set("Authorization", adminAuthHeader);
+      const response = await request
+        .get(`${url}/invalid`)
+        .set("Authorization", adminAuthHeader);
 
       expect(response.statusCode).toBe(400);
       expect(response.body.code).toBe("VALIDATION_FAILED");

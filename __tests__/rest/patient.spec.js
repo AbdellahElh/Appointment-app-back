@@ -109,10 +109,10 @@ describe("Patients", () => {
       const response = await request
         .get(url)
         .set("Authorization", adminAuthHeader);
-    
+
       expect(response.statusCode).toBe(200);
       expect(response.body.items.length).toBeGreaterThanOrEqual(3);
-    
+
       expect(response.body.items[0]).toEqual({
         id: 2,
         name: "David Brown",
@@ -124,7 +124,7 @@ describe("Patients", () => {
         city: "Urbanville",
         birthdate: expect.any(String),
       });
-    
+
       expect(response.body.items[2]).toEqual({
         id: 3,
         name: "Sophia Davis",
@@ -296,7 +296,9 @@ describe("Patients", () => {
       // await knex(tables.user).whereIn("id", dataToDelete.users).delete();
     });
 
+    // Test case voor het succesvol updaten van een patiënt
     it("should 200 and return the updated patient", async () => {
+      // Maak een PUT request naar de /api/patients/1 endpoint met de nieuwe gegevens
       const response = await request
         .put(`${url}/1`)
         .set("Authorization", adminAuthHeader)
@@ -310,7 +312,10 @@ describe("Patients", () => {
           birthdate: new Date(2001, 10, 15),
         });
 
+      // Verwacht dat de statuscode van de response 200 is
       expect(response.statusCode).toBe(200);
+
+      // Verwacht dat de body van de response gelijk is aan het gegeven object
       expect(response.body).toEqual({
         id: 1,
         name: "Changed name",
@@ -324,12 +329,26 @@ describe("Patients", () => {
       });
     });
 
+    // Test case voor het geval dat de patiënt niet bestaat
     it("should 404 with not existing patient", async () => {
+      // Maak een PUT request naar de /api/patients/111 endpoint
       const response = await request
-        .delete(`${url}/111`)
-        .set("Authorization", adminAuthHeader);
+        .put(`${url}/111`)
+        .set("Authorization", adminAuthHeader)
+        .send({
+          name: "Updated name",
+          email: "updatedEmail@gmail.com",
+          street: "123 New Street",
+          number: "Apt 1A",
+          postalCode: "12345",
+          city: "New City",
+          birthdate: new Date(2000, 1, 1),
+        });
 
+      // Verwacht dat de statuscode van de response 404 is
       expect(response.statusCode).toBe(404);
+
+      // Verwacht dat de body van de response gelijk is aan het gegeven object
       expect(response.body).toMatchObject({
         code: "NOT_FOUND",
         message: "No patient with id 111 exists",
@@ -337,6 +356,8 @@ describe("Patients", () => {
           id: 111,
         },
       });
+
+      // Verwacht dat de stack trace van de fout bestaat
       expect(response.body.stack).toBeTruthy();
     });
 
@@ -358,7 +379,9 @@ describe("Patients", () => {
       expect(response.body.details.body).toHaveProperty("name");
     });
 
+    // Test case voor het geval dat de email ontbreekt bij het updaten van een patiënt
     it("should 400 when missing email", async () => {
+      // Maak een PUT request naar de /api/patients/1 endpoint zonder een email
       const response = await request
         .put(`${url}/1`)
         .set("Authorization", adminAuthHeader)
@@ -371,8 +394,13 @@ describe("Patients", () => {
           birthdate: new Date(2001, 10, 15).toJSON(),
         });
 
+      // Verwacht dat de statuscode van de response 400 is
       expect(response.statusCode).toBe(400);
+
+      // Verwacht dat de foutcode gelijk is aan "VALIDATION_FAILED"
       expect(response.body.code).toBe("VALIDATION_FAILED");
+
+      // Verwacht dat de details van de fout een eigenschap "email" hebben
       expect(response.body.details.body).toHaveProperty("email");
     });
 

@@ -28,6 +28,7 @@ module.exports = function installMiddleware(app) {
     })
   );
 
+  // 
   app.use(serve(path.join(__dirname, '../../assets')));
 
   app.use(async (ctx, next) => {
