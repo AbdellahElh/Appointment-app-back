@@ -6,6 +6,7 @@ module.exports = {
   cors: {
     origins: ["https://appointment-app-web-2023-24.onrender.com"],
     maxAge: 3 * 60 * 60, // 3 hours
+    credentials: true, // Allow cookies/auth headers
   },
   database: {
     client: "pg", // PostgreSQL
