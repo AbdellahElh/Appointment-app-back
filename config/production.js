@@ -1,18 +1,19 @@
 module.exports = {
   log: {
-    level: "silly", //info
+    level: "info", // Use "info" or a less verbose level for production
     disabled: false,
   },
   cors: {
     origins: ["https://appointment-app-web-2023-24.onrender.com"],
-    // origins: ["http://localhost:5173"],
-    maxAge: 3 * 60 * 60,
+    maxAge: 3 * 60 * 60, // 3 hours
   },
   database: {
-    client: "mysql2",
-    host: "localhost",
-    port: 3306,
-    // name: 'AppointmentApp',
+    client: "pg", // PostgreSQL
+    host: process.env.DATABASE_HOST || "localhost",
+    port: process.env.DATABASE_PORT || 5432,
+    name: process.env.DATABASE_NAME || "AppointmentApp",
+    username: process.env.DATABASE_USERNAME || "root",
+    password: process.env.DATABASE_PASSWORD || "",
   },
   auth: {
     argon: {
@@ -24,9 +25,10 @@ module.exports = {
     jwt: {
       secret:
         "eenveeltemoeilijksecretdatniemandooitzalradenandersisdesitegehacked",
-      expirationInterval: 60 * 60 * 3000, // ms (3 hour)
+      expirationInterval: 3 * 60 * 60 * 1000, // 3 hours
       issuer: "appointment.hogent.be",
       audience: "appointment.hogent.be",
     },
   },
+  port: process.env.PORT || 8080, // Add this for the production server
 };

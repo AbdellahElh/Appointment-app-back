@@ -1,5 +1,4 @@
 const { join } = require("path");
-
 const config = require("config");
 const knex = require("knex");
 
@@ -8,7 +7,7 @@ const { getLogger } = require("../core/logging");
 const NODE_ENV = config.get("env");
 const isDevelopment = NODE_ENV === "development";
 
-const DATABASE_CLIENT = config.get("database.client");
+const DATABASE_CLIENT = isDevelopment ? "mysql" : "pg"; // Use MySQL locally, PostgreSQL in production
 const DATABASE_NAME = config.get("database.name");
 const DATABASE_HOST = config.get("database.host");
 const DATABASE_PORT = config.get("database.port");
@@ -26,13 +25,12 @@ async function initializeData() {
     connection: {
       host: DATABASE_HOST,
       port: DATABASE_PORT,
-      // name: DATABASE_NAME,
+      database: DATABASE_NAME,
       user: DATABASE_USERNAME,
       password: DATABASE_PASSWORD,
-      insecureAuth: isDevelopment,
+      ...(DATABASE_CLIENT === "pg" && { ssl: { rejectUnauthorized: false } }), // Add SSL for PostgreSQL
     },
     debug: isDevelopment,
-
     migrations: {
       tableName: "knex_meta",
       directory: join("src", "data", "migrations"),
@@ -45,15 +43,22 @@ async function initializeData() {
   knexInstance = knex(knexOptions);
 
   try {
-    await knexInstance.raw("SELECT 1+1 AS result");
-    await knexInstance.raw(`CREATE DATABASE IF NOT EXISTS ${DATABASE_NAME}`);
-    await knexInstance.destroy();
+    await knexInstance.raw("SELECT 1+1 AS result"); // Test database connection
 
-    knexOptions.connection.database = DATABASE_NAME;
-    knexInstance = knex(knexOptions);
-    await knexInstance.raw("SELECT 1+1 AS result");
+    // Only create the database if running locally with MySQL
+    if (isDevelopment && DATABASE_CLIENT === "mysql") {
+      await knexInstance.raw(`CREATE DATABASE IF NOT EXISTS ${DATABASE_NAME}`);
+    }
+
+    // Reinitialize with the correct database for MySQL after creation
+    if (isDevelopment && DATABASE_CLIENT === "mysql") {
+      await knexInstance.destroy();
+      knexOptions.connection.database = DATABASE_NAME;
+      knexInstance = knex(knexOptions);
+      await knexInstance.raw("SELECT 1+1 AS result"); // Test connection again
+    }
   } catch (error) {
-    logger.error(error.message, { error });
+    logger.error("Error initializing the database connection", { error });
     throw new Error("Could not initialize the data layer");
   }
 
@@ -61,26 +66,20 @@ async function initializeData() {
   try {
     await knexInstance.migrate.latest();
   } catch (error) {
-    // logger.error("Error while migrating the database");
-    logger.error("Error while migrating the database", {
-      error,
-    });
-
+    logger.error("Error while migrating the database", { error });
     throw new Error("Migrations failed, check the logs");
   }
 
+  // Seed data in development
   if (isDevelopment) {
     try {
       await knexInstance.seed.run();
     } catch (error) {
-      // logger.error("Error while seeding database");
-      logger.error("Error while seeding database", {
-        error,
-      });
+      logger.error("Error while seeding database", { error });
     }
   }
 
-  logger.info("Succesfully connected to the database");
+  logger.info("Successfully connected to the database");
 
   return knexInstance;
 }

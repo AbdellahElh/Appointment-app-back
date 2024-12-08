@@ -1,16 +1,17 @@
 const { tables } = require("../index.js");
 
-module.exports = {
-  up: async (knex) => {
-    await knex.schema.createTable(tables.user, (table) => {
-      table.increments("id");
-      table.string("email").notNullable();
-      table.string("password_hash").notNullable();
+exports.up = async function (knex) {
+  const exists = await knex.schema.hasTable("user");
+  if (!exists) {
+    return knex.schema.createTable(tables.user, (table) => {
+      table.increments("id").primary();
+      table.string("email", 255).notNullable().unique();
+      table.string("password_hash", 255).notNullable();
       table.jsonb("roles").notNullable();
-      table.unique("email", "idx_user_email_unique");
     });
-  },
-  down: (knex) => {
-    return knex.schema.dropTableIfExists(tables.user);
-  },
+  }
+};
+
+exports.down = function (knex) {
+  return knex.schema.dropTableIfExists("user");
 };
